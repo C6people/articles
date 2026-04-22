@@ -141,17 +141,6 @@ export interface Article {
 
 ---
 
-## 🚀 新しい画面を追加する手順（まとめ）
-
-例えば「記事一覧画面」を追加したい場合の手順：
-
-1. **`views/ArticleListView.vue`** を作成し、画面のHTML・ロジックを書く
-2. **`components/ArticleCard.vue`** など、必要な部品を作成する
-3. **`router/index.ts`** に `{ path: '/articles', component: ArticleListView }` を追加する
-4. **`api/client.ts`** に `getArticles()` 関数を追加する
-5. ブラウザで `http://localhost:5173/articles` にアクセスして確認！
-
----
 
 ## 💡 Tips
 
