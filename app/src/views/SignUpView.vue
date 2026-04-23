@@ -4,189 +4,224 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const userId = ref('')
-const password = ref('')
-const showPassword = ref(false)
-const userIdError = ref(false)
-const passwordError = ref(false)
+const userId = ref<string>('')
+const password = ref<string>('')
+const errorMessage = ref<string>('')
+const isError = ref<boolean>(false)
+const isPasswordVisible = ref<boolean>(false)
 
-const passwordType = () => (showPassword.value ? 'text' : 'password')
-const passwordIcon = () => (showPassword.value ? '🔓' : '👁️')
+const handleSignUp = async () => {
+  isError.value = false
+  errorMessage.value = ''
 
-const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
-
-const validateAndSubmit = () => {
-  userIdError.value = !userId.value.trim()
-  passwordError.value = !password.value.trim()
-
-  if (!userIdError.value && !passwordError.value) {
-    // TODO: APIでユーザー登録処理を行う
-    router.push('/')
+  if (!userId.value.trim() || !password.value.trim()) {
+    isError.value = true
+    errorMessage.value = 'ユーザーIDとパスワードを入力してください'
+    return
   }
+
+  // TODO: APIでユーザー登録処理を行う
+  alert('登録に成功しました。ホームへ移動します。')
+  router.push('/')
 }
 
-const goToLogin = () => {
-  router.push('/login')
+const togglePasswordVisibility = () => {
+  isPasswordVisible.value = !isPasswordVisible.value
 }
 </script>
 
 <template>
-  <div class="page-wrapper">
-    <section class="container" aria-labelledby="signup-heading">
+  <div class="main-wrapper">
+    <div class="login-box">
+
       <div class="logo">
-        <img src="../assets/logo.png" alt="KIC 神戸電子専門学校" />
+        <img class="school-logo" src="@/assets/logo.png" alt="School Logo">
       </div>
-      <div class="site-title">プログラミング情報共有サイト</div>
+      <p class="site-sub-title">プログラミング情報共有サイト</p>
+      <h1>新規登録</h1>
 
-      <h1 id="signup-heading">新規登録</h1>
+      <form @submit.prevent="handleSignUp">
 
-      <div class="form-group">
-        <label for="userId">ユーザID</label>
-        <input
-          id="userId"
-          type="text"
-          v-model="userId"
-          placeholder="@kduser"
-          :aria-invalid="userIdError"
-          :aria-describedby="userIdError ? 'userId-error' : undefined"
-        />
-        <p v-if="userIdError" id="userId-error" class="error-msg">ユーザIDを入力してください</p>
-      </div>
-
-      <div class="form-group">
-        <label for="password">パスワード</label>
-        <div class="password-wrapper">
+        <div class="input-group">
+          <label for="userId">ユーザーID</label>
           <input
-            id="password"
-            :type="passwordType()"
-            v-model="password"
-            :aria-invalid="passwordError"
-            :aria-describedby="passwordError ? 'password-error' : undefined"
-          />
-          <button type="button" class="toggle-password" @click="togglePassword" aria-label="パスワード表示切り替え">
-            {{ passwordIcon() }}
-          </button>
+            type="text"
+            id="userId"
+            v-model="userId"
+            :class="{ 'input-error': isError }"
+            required
+            placeholder="@kduser"
+          >
+          <div class="error-message">{{ errorMessage }}</div>
         </div>
-        <p v-if="passwordError" id="password-error" class="error-msg">パスワードを入力してください</p>
-      </div>
 
-      <button type="button" class="submit-btn" @click="validateAndSubmit">新規登録</button>
-      <button type="button" class="footer-link" @click="goToLogin">アカウントをお持ちですか？</button>
-    </section>
+        <div class="input-group">
+          <label for="password">パスワード</label>
+          <div class="password-wrapper">
+            <input
+              :type="isPasswordVisible ? 'text' : 'password'"
+              id="password"
+              v-model="password"
+              :class="{ 'input-error': isError }"
+              required
+              placeholder="8文字以上の英数字"
+            >
+            <span
+              class="material-symbols-outlined"
+              id="togglePassword"
+              @click="togglePasswordVisibility"
+            >
+              {{ isPasswordVisible ? 'visibility_off' : 'visibility' }}
+            </span>
+          </div>
+        </div>
+
+        <button type="submit" class="login-button">新規登録</button>
+      </form>
+
+      <p class="register-link"><a href="#" @click.prevent="$router.push('/login')">アカウントをお持ちですか？</a></p>
+
+    </div>
   </div>
 </template>
 
 <style scoped>
-.page-wrapper {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #ffffff;
-  padding: 24px;
+/* Google Iconsの読み込み */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+.main-wrapper {
+    width: 100vw;
+    height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
-.container {
-  width: 100%;
-  max-width: 400px;
-  padding: 20px;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.logo {
-  margin-bottom: 10px;
+.login-box {
+    background: #ffffff;
+    width: 360px;
+    padding: 40px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
 .logo img {
-  max-width: 150px;
-  height: auto;
+    max-width: 150px;
+    height: auto;
 }
 
-.site-title {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #555;
-  margin-bottom: 50px;
+.site-sub-title {
+    font-size: 13px;
+    color: #888;
+    margin: 0 0 10px 0;
+    font-weight: bold;
 }
 
 h1 {
-  font-size: 1.6rem;
-  color: #444;
-  margin-bottom: 30px;
+    font-size: 24px;
+    margin: 30px 0 20px 0;
+    color: #4b4b4b;
+    font-weight: 700;
+    font-family: "Segoe UI", sans-serif;
 }
 
-.form-group {
-  text-align: left;
-  margin-bottom: 20px;
-  position: relative;
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
 }
 
-label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #444;
+.input-group label {
+    display: block;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: bold;
 }
 
-input {
-  width: 100%;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  font-size: 1rem;
+#userId, #password {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
 }
 
-.error-msg {
-  color: #ff4d4d;
-  font-size: 0.8rem;
-  margin-top: 5px;
+input:focus {
+    outline: none;
+    border-color: #2693B4;
 }
 
 .password-wrapper {
-  position: relative;
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-.toggle-password {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 1.2rem;
-  user-select: none;
-  border: none;
-  background: none;
-  padding: 0;
+.password-wrapper input {
+    padding-right: 45px;
 }
 
-.submit-btn {
-  width: 100%;
-  padding: 16px;
-  background-color: #2b96b6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 20px;
+#togglePassword {
+    position: absolute;
+    right: 12px;
+    cursor: pointer;
+    user-select: none;
+    color: #aaa;
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
 }
 
-.footer-link {
-  margin-top: 25px;
-  display: block;
-  color: #2b96b6;
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: bold;
-  cursor: pointer;
-  background: none;
-  border: none;
-  width: 100%;
+.error-message {
+    color: #ff4d4d;
+    font-size: 12px;
+    margin-top: 5px;
+    height: 14px;
+}
+
+.input-error {
+    border-color: #ff4d4d !important;
+    background-color: #fffafa;
+}
+
+.register-link {
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.register-link a {
+    color: #2693B4;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+.login-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #2693B4;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.login-button:hover {
+    background-color: #1e7a96;
 }
 </style>
