@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
+from .routers import articles, question
 
 app = FastAPI(
     title="Articles API",
@@ -16,6 +17,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ルーターの登録
+app.include_router(articles.router, tags=["articles"])
+app.include_router(question.router, tags=["questions"])
 
 @app.on_event("startup")
 async def startup():
