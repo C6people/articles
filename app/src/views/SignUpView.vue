@@ -1,10 +1,12 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const userId = ref('')
 const password = ref('')
 const showPassword = ref(false)
-const showHomePage = ref(false)
 const userIdError = ref(false)
 const passwordError = ref(false)
 
@@ -20,22 +22,19 @@ const validateAndSubmit = () => {
   passwordError.value = !password.value.trim()
 
   if (!userIdError.value && !passwordError.value) {
-    showHomePage.value = true
+    // TODO: APIでユーザー登録処理を行う
+    router.push('/')
   }
 }
 
-const goBack = () => {
-  showHomePage.value = false
-  userId.value = ''
-  password.value = ''
-  userIdError.value = false
-  passwordError.value = false
+const goToLogin = () => {
+  router.push('/login')
 }
 </script>
 
 <template>
   <div class="page-wrapper">
-    <section v-if="!showHomePage" class="container" aria-labelledby="signup-heading">
+    <section class="container" aria-labelledby="signup-heading">
       <div class="logo">
         <img src="../assets/logo.png" alt="KIC 神戸電子専門学校" />
       </div>
@@ -50,7 +49,7 @@ const goBack = () => {
           type="text"
           v-model="userId"
           placeholder="@kduser"
-          aria-invalid="userIdError"
+          :aria-invalid="userIdError"
           :aria-describedby="userIdError ? 'userId-error' : undefined"
         />
         <p v-if="userIdError" id="userId-error" class="error-msg">ユーザIDを入力してください</p>
@@ -63,7 +62,7 @@ const goBack = () => {
             id="password"
             :type="passwordType()"
             v-model="password"
-            aria-invalid="passwordError"
+            :aria-invalid="passwordError"
             :aria-describedby="passwordError ? 'password-error' : undefined"
           />
           <button type="button" class="toggle-password" @click="togglePassword" aria-label="パスワード表示切り替え">
@@ -74,17 +73,7 @@ const goBack = () => {
       </div>
 
       <button type="button" class="submit-btn" @click="validateAndSubmit">新規登録</button>
-      <button type="button" class="footer-link" @click="goBack">アカウントをお持ちですか？</button>
-    </section>
-
-    <section v-else class="container home-page" aria-label="ホーム画面">
-      <div class="logo">
-        <img src="../assets/logo.png" alt="KIC" />
-      </div>
-      <h1>ホーム画面</h1>
-      <p>ログインに成功しました！</p>
-      <p>ここはダミーのホーム画面です。</p>
-      <button class="submit-btn" type="button" @click="goBack">戻る</button>
+      <button type="button" class="footer-link" @click="goToLogin">アカウントをお持ちですか？</button>
     </section>
   </div>
 </template>
@@ -199,9 +188,5 @@ input {
   background: none;
   border: none;
   width: 100%;
-}
-
-.home-page {
-  text-align: center;
 }
 </style>

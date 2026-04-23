@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../components/HomeView.vue'
 import PostFormView from '../components/PostFormView.vue'
 import LoginView from '../components/Login.vue'
-import SignUpView from '../components/SignUp.vue'
+import SignUpView from '../views/SignUpView.vue'
 
 const routes = [
   {
