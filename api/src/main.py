@@ -19,8 +19,8 @@ app.add_middleware(
 )
 
 # ルーターの登録
-app.include_router(articles.router, prefix="/articles", tags=["articles"])
-app.include_router(question.router, prefix="/questions", tags=["questions"])
+app.include_router(articles.router, tags=["articles"])
+app.include_router(question.router, tags=["questions"])
 
 @app.on_event("startup")
 async def startup():
