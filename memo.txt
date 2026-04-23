@@ -1,0 +1,75 @@
+# データベース設計書
+
+## 1. 【基盤】ユーザー
+ユーザーの基本情報を管理します。
+
+### users
+| カラム名 | データ型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| **id** | INT | PK, AI | ユーザーID（自動採番） |
+| **user_id** | VARCHAR | NOT NULL, UNIQUE | ユーザーID（@xxxxの形式、ログイン用） |
+| **role** | VARCHAR | NOT NULL | 'student' または 'teacher' |
+| **password** | VARCHAR | NOT NULL | パスワード（ハッシュ化して保存） |
+
+---
+
+## 2. 【記事画面】
+ブログやナレッジ共有に関するテーブルです。
+
+### articles (記事)
+| カラム名 | データ型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| **id** | INT | PK, AI | 記事ID |
+| **user_id** | INT | FK (users.id), ON DELETE CASCADE | 投稿者ID |
+| **title** | VARCHAR | NOT NULL | 記事タイトル |
+| **body** | TEXT | NOT NULL | 記事本文 |
+| **created_at** | DATETIME | NOT NULL | 投稿日時 |
+
+### article_comments (記事コメント)
+| カラム名 | データ型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| **id** | INT | PK, AI | コメントID |
+| **article_id** | INT | FK (articles.id), ON DELETE CASCADE | 対象記事ID |
+| **user_id** | INT | FK (users.id), ON DELETE CASCADE | コメント投稿者ID |
+| **body** | TEXT | NOT NULL | コメント内容 |
+| **created_at** | DATETIME | NOT NULL | コメント日時 |
+
+---
+
+## 3. 【質問画面】
+Q&A機能に関するテーブルです。
+
+### questions (質問)
+| カラム名 | データ型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| **id** | INT | PK, AI | 質問ID |
+| **user_id** | INT | FK (users.id), ON DELETE CASCADE | 質問者ID |
+| **title** | VARCHAR | NOT NULL | 質問タイトル |
+| **body** | TEXT | NOT NULL | 質問内容 |
+| **created_at** | DATETIME | NOT NULL | 投稿日時 |
+
+### question_comments (回答・質問コメント)
+| カラム名 | データ型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| **id** | INT | PK, AI | 回答/コメントID |
+| **question_id** | INT | FK (questions.id), ON DELETE CASCADE | 対象質問ID |
+| **user_id** | INT | FK (users.id), ON DELETE CASCADE | 投稿者ID |
+| **body** | TEXT | NOT NULL | 内容 |
+| **is_answer** | BOOLEAN | Default: false | true: 回答 / false: コメント |
+| **created_at** | DATETIME | NOT NULL | 投稿日時 |
+
+---
+
+## 4. 【共通】
+「いいね」などの横断的な機能を管理します。
+
+### likes (いいね)
+| カラム名 | データ型 | 制約 | 説明 |
+| :--- | :--- | :--- | :--- |
+| **id** | INT | PK, AI | いいねID |
+| **user_id** | INT | FK (users.id), ON DELETE CASCADE | いいねしたユーザーID |
+| **target_type** | VARCHAR | NOT NULL | 'article', 'article_comment', 'question', 'question_comment' |
+| **target_id** | INT | NOT NULL | 各テーブルのID |
+
+> **制約事項:**
+> `user_id`, `target_type`, `target_id` の3つで**複合ユニーク制約**をかけ、重複いいねを防止します。
