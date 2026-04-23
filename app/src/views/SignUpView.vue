@@ -219,6 +219,7 @@ input:focus {
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s;
+    margin-top: 30px;
 }
 
 .login-button:hover {
