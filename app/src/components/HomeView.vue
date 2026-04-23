@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 
 // --- 1. データ管理（ダミーデータ：後にAPI接続） ---
 const posts = ref([
@@ -41,6 +42,7 @@ const categories = ["すべて", "プログラミング", "サーバーサイド
 const searchQuery = ref("");
 const selectedCategory = ref("すべて");
 const sortOrder = ref<'desc' | 'asc'>('desc'); // desc: 新着順, asc: 古い順
+const router = useRouter()
 
 // --- 3. 検索・絞り込み・ソートの統合ロジック ---
 const filteredAndSortedPosts = computed(() => {
@@ -61,6 +63,10 @@ const filteredAndSortedPosts = computed(() => {
       : dateA - dateB; // 古い順（小さい順）
   });
 });
+
+const goToPost = () => {
+  router.push('/post');
+};
 </script>
 
 <template>
@@ -77,7 +83,7 @@ const filteredAndSortedPosts = computed(() => {
           />
           <button class="search-button">🔍 検索</button>
         </div>
-        <button class="post-button">＋ 質問する</button>
+        <button class="post-button" @click="goToPost">＋ 質問する</button>
       </div>
     </header>
 
