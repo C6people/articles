@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 /**
  * 【TypeScriptのポイント】
  * Vueでは「ref」を使って、入力内容やエラー状態をリアルタイムに管理します。
  */
-const userid = ref<string>('')
-const password = ref<string>('')
-const errorMessage = ref<string>('')
-const isError = ref<boolean>(false)
-const isPasswordVisible = ref<boolean>(false)
+    const userid = ref<string>('')
+    const password = ref<string>('')
+    const errorMessage = ref<string>('')
+    const isError = ref<boolean>(false)
+    const isPasswordVisible = ref<boolean>(false)
 
+    const router = useRouter()
 /**
  * ログインボタンを押した時の処理
  */
-const handleLogin = async () => {
+    const handleLogin = async () => {
   // 以前のエラー状態をリセット
     isError.value = false
     errorMessage.value = ''
@@ -48,7 +50,8 @@ const handleLogin = async () => {
         errorMessage.value = "ユーザーIDかパスワードが正しくありません"
     } else {
     // 成功
-    alert("ログイン成功！学生専用ページへ移動します。")
+        alert("ログイン成功！学生専用ページへ移動します。")
+        router.push('/')
     }
 }
 
