@@ -1,15 +1,16 @@
 from pydantic import BaseModel
 from datetime import datetime
+from uuid import UUID
 
 class ArticleCreate(BaseModel):
     title: str
     body: str
     # TODO: ログイン機能実装後は削除し、トークンから取得するように変更する
-    user_id: int
+    user_id: UUID
 
 class ArticleResponse(BaseModel):
-    id: int
-    user_id: int
+    id: UUID
+    user_id: UUID
     title: str
     body: str
     created_at: datetime

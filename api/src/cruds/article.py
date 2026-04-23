@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List
+from uuid import UUID
 
 from src.models.article import Article
 import src.schemas.article as article_schema
@@ -11,7 +12,7 @@ async def get_articles(db: AsyncSession, skip: int = 0, limit: int = 100) -> Lis
     )
     return result.scalars().all()
 
-async def get_article(db: AsyncSession, article_id: int) -> Article | None:
+async def get_article(db: AsyncSession, article_id: UUID) -> Article | None:
     result = await db.execute(select(Article).where(Article.id == article_id))
     return result.scalar_one_or_none()
 

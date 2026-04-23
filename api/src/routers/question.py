@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
+from uuid import UUID
 
 from src.database import get_db
 import src.schemas.question as question_schema
@@ -18,7 +19,7 @@ async def read_questions(skip: int = 0, limit: int = 100, db: AsyncSession = Dep
     return questions
 
 @router.get("/questions/{question_id}", response_model=question_schema.QuestionResponse)
-async def read_question(question_id: int, db: AsyncSession = Depends(get_db)):
+async def read_question(question_id: UUID, db: AsyncSession = Depends(get_db)):
     """
     指定されたIDの質問詳細を取得します。
     """

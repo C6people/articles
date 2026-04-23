@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List
+from uuid import UUID
 
 from src.models.question import Question
 import src.schemas.question as question_schema
@@ -11,7 +12,7 @@ async def get_questions(db: AsyncSession, skip: int = 0, limit: int = 100) -> Li
     )
     return result.scalars().all()
 
-async def get_question(db: AsyncSession, question_id: int) -> Question | None:
+async def get_question(db: AsyncSession, question_id: UUID) -> Question | None:
     result = await db.execute(select(Question).where(Question.id == question_id))
     return result.scalar_one_or_none()
 
