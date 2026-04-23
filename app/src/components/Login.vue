@@ -50,7 +50,7 @@ import { useRouter } from 'vue-router'
         errorMessage.value = "ユーザーIDかパスワードが正しくありません"
     } else {
     // 成功
-        alert("ログイン成功！学生専用ページへ移動します。")
+        alert("ログインに成功しました。ホームへ移動します。")
         router.push('/')
     }
 }
@@ -124,11 +124,22 @@ const togglePasswordVisibility = () => {
 
 /* 元のCSSをそのまま流用 */
 .main-wrapper {
+    /* 画面いっぱいに広げる */
+    width: 100vw;
+    height: 100vh;
+    
+    /* 背景を白（または画像のデザイン通り）にする */
+    background-color: #ffffff; 
+    
+    /* 真ん中寄せの設定 */
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: #ffffff;
+
+    /* 💡 もし背景が真っ黒なままなら、これを追加 */
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 .login-box {
@@ -225,6 +236,7 @@ input:focus {
 .forget-link, .register-link {
     font-size: 12px;
     font-weight: bold;
+    margin-top: 10px;
 }
 
 .forget-link {
@@ -234,6 +246,7 @@ input:focus {
 .forget-link a, .register-link a {
     color: #2693B4;
     text-decoration: none;
+    font-weight: bold;
 }
 
 .forget-link a:hover, .register-link a:hover {
