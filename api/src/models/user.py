@@ -10,4 +10,4 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True, comment="ユーザー名（ログイン用）")
     role = Column(String, nullable=False, comment="'student' または 'teacher'")
-    password = Column(String, nullable=False, comment="ハッシュ化されたパスワード")
+    password_hash = Column(String, nullable=False, comment="ハッシュ化されたパスワード")

@@ -108,11 +108,11 @@ const togglePasswordVisibility = () => {
                     </span>
                 </div>
             </div>
-            <p class="forget-link"><a href="#">パスワードをお忘れですか？</a></p>
+
             <button type="submit" class="login-button">ログイン</button>
         </form>
     
-    <p class="register-link"><a href="#">アカウントを新規登録する</a></p>
+    <p class="register-link"><a href="#" @click.prevent="router.push('/signup')">アカウントを新規登録する</a></p>
 
     </div>
 </div>
@@ -233,23 +233,19 @@ input:focus {
     background-color: #fffafa;
 }
 
-.forget-link, .register-link {
+.register-link {
     font-size: 12px;
     font-weight: bold;
     margin-top: 10px;
 }
 
-.forget-link {
-    margin: -10px 0 30px 0;
-}
-
-.forget-link a, .register-link a {
+.register-link a {
     color: #2693B4;
     text-decoration: none;
     font-weight: bold;
 }
 
-.forget-link a:hover, .register-link a:hover {
+.register-link a:hover {
     text-decoration: underline;
 }
 
@@ -264,6 +260,7 @@ input:focus {
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s;
+    margin-top: 30px;
 }
 
 .login-button:hover {
