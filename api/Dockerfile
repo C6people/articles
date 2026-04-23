@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements-dev.txt
 COPY . .
 
 # Uvicornサーバーの起動コマンド (ホットリロード有効化)
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

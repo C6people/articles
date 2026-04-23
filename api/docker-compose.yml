@@ -35,13 +35,5 @@ services:
       postgres:
         condition: service_healthy
 
-  migrate:
-    image: migrate/migrate:v4.19.1
-    profiles:
-      - tools
-    depends_on:
-      postgres:
-        condition: service_healthy
-
 volumes:
   postgres_data:
