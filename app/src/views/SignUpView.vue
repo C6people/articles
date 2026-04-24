@@ -6,17 +6,25 @@ const router = useRouter()
 
 const userId = ref<string>('')
 const password = ref<string>('')
+const confirmPassword = ref<string>('')
 const errorMessage = ref<string>('')
 const isError = ref<boolean>(false)
 const isPasswordVisible = ref<boolean>(false)
+const isConfirmPasswordVisible = ref<boolean>(false)
 
 const handleSignUp = async () => {
   isError.value = false
   errorMessage.value = ''
 
-  if (!userId.value.trim() || !password.value.trim()) {
+  if (!userId.value.trim() || !password.value.trim() || !confirmPassword.value.trim()) {
     isError.value = true
-    errorMessage.value = 'ユーザーIDとパスワードを入力してください'
+    errorMessage.value = 'すべての項目を入力してください'
+    return
+  }
+
+  if (password.value !== confirmPassword.value) {
+    isError.value = true
+    errorMessage.value = 'パスワードが一致しません'
     return
   }
 
@@ -27,6 +35,10 @@ const handleSignUp = async () => {
 
 const togglePasswordVisibility = () => {
   isPasswordVisible.value = !isPasswordVisible.value
+}
+
+const toggleConfirmPasswordVisibility = () => {
+  isConfirmPasswordVisible.value = !isConfirmPasswordVisible.value
 }
 </script>
 
@@ -50,7 +62,7 @@ const togglePasswordVisibility = () => {
             v-model="userId"
             :class="{ 'input-error': isError }"
             required
-            placeholder="@kduser"
+            placeholder="７桁の学籍番号"
           >
           <div class="error-message">{{ errorMessage }}</div>
         </div>
@@ -72,6 +84,27 @@ const togglePasswordVisibility = () => {
               @click="togglePasswordVisibility"
             >
               {{ isPasswordVisible ? 'visibility_off' : 'visibility' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="confirmPassword">パスワード（確認用）</label>
+          <div class="password-wrapper">
+            <input
+              :type="isConfirmPasswordVisible ? 'text' : 'password'"
+              id="confirmPassword"
+              v-model="confirmPassword"
+              :class="{ 'input-error': isError }"
+              required
+              placeholder="もう一度入力してください"
+            >
+            <span
+              class="material-symbols-outlined"
+              id="toggleConfirmPassword"
+              @click="toggleConfirmPasswordVisibility"
+            >
+              {{ isConfirmPasswordVisible ? 'visibility_off' : 'visibility' }}
             </span>
           </div>
         </div>
@@ -144,7 +177,7 @@ form {
     font-weight: bold;
 }
 
-#userId, #password {
+#userId, #password, #confirmPassword {
     width: 100%;
     padding: 12px;
     font-size: 14px;
@@ -169,7 +202,7 @@ input:focus {
     padding-right: 45px;
 }
 
-#togglePassword {
+#togglePassword, #toggleConfirmPassword {
     position: absolute;
     right: 12px;
     cursor: pointer;
