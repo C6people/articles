@@ -1,0 +1,249 @@
+import { useState } from "react";
+import {
+  Search,
+  Plus,
+  ThumbsUp,
+  MessageCircle,
+  User,
+  BookOpen,
+  Code,
+  Palette,
+  HelpCircle,
+  LogIn,
+  Menu,
+  X,
+} from "lucide-react";
+
+// --- 型定義 (フロントエンドの設計図) ---
+type ContentType = "question" | "article" | "project";
+type Category = "programming" | "design" | "general" | "other";
+
+interface Post {
+  id: number;
+  type: ContentType;
+  title: string;
+  content: string;
+  author: string;
+  authorRole: "student" | "teacher";
+  category: Category;
+  likes: number;
+  comments: Comment[];
+  answers?: Answer[];
+  createdAt: string;
+}
+
+interface Answer {
+  id: number;
+  content: string;
+  author: string;
+  authorRole: "student" | "teacher";
+  likes: number;
+  isBestAnswer: boolean;
+  createdAt: string;
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  author: string;
+  createdAt: string;
+}
+
+// --- 初期表示用のダミーデータ ---
+const initialPosts: Post[] = [
+  {
+    id: 1,
+    type: "question",
+    title: "ReactのuseEffectの依存配列について教えてください",
+    content: "useEffectの第二引数に空配列を渡した場合と、省略した場合の違いを教えてください。",
+    author: "山田太郎",
+    authorRole: "student",
+    category: "programming",
+    likes: 24,
+    comments: [],
+    answers: [
+      {
+        id: 1,
+        content: "空配列を渡すとマウント時に一度だけ実行されます。省略すると毎回のレンダリングで実行されます。",
+        author: "佐藤先生",
+        authorRole: "teacher",
+        likes: 32,
+        isBestAnswer: true,
+        createdAt: "2026-04-20 14:30",
+      }
+    ],
+    createdAt: "2026-04-20 13:00",
+  }
+];
+
+const categories = [
+  { id: "programming", name: "プログラミング", icon: Code },
+  { id: "design", name: "デザイン", icon: Palette },
+  { id: "general", name: "一般", icon: BookOpen },
+  { id: "other", name: "その他", icon: HelpCircle },
+];
+
+export default function App() {
+  // --- 画面遷移・表示状態 ---
+  const [currentView, setCurrentView] = useState<"home" | "detail" | "new" | "login">("home");
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // --- データ状態 (バックエンドがない間はここで管理) ---
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
+
+  // --- 投稿フォーム用 ---
+  const [newPostTitle, setNewPostTitle] = useState("");
+  const [newPostContent, setNewPostContent] = useState("");
+
+  // --- 検索・フィルタリングロジック ---
+  const filteredPosts = posts.filter((post) => {
+    const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  // --- フロントエンド単体で動く「擬似」投稿処理 ---
+  const handleCreatePost = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newPost: Post = {
+      id: posts.length + 1,
+      type: "question",
+      title: newPostTitle,
+      content: newPostContent,
+      author: "ゲストユーザー", // ログイン機能未実装のため
+      authorRole: "student",
+      category: "programming",
+      likes: 0,
+      comments: [],
+      createdAt: "2026-04-22 14:00",
+    };
+
+    setPosts([newPost, ...posts]);
+    setNewPostTitle("");
+    setNewPostContent("");
+    setCurrentView("home");
+    alert("投稿しました（ブラウザを更新すると消えます）");
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      {/* ヘッダー */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          <h1 
+            className="text-2xl font-bold text-blue-600 cursor-pointer"
+            onClick={() => setCurrentView("home")}
+          >
+            知恵共有
+          </h1>
+          
+          <div className="flex-1 max-w-xl relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="キーワードで検索..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={() => setCurrentView("new")}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+          >
+            <Plus size={20} />
+            <span className="hidden sm:inline">投稿する</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 py-6 flex gap-6">
+        {/* サイドバー (カテゴリー選択) */}
+        <aside className="w-64 hidden lg:block">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <h2 className="font-bold mb-4">カテゴリー</h2>
+            <nav className="space-y-1">
+              <button
+                onClick={() => setSelectedCategory("all")}
+                className={`w-full text-left px-3 py-2 rounded-md ${selectedCategory === "all" ? "bg-blue-50 text-blue-700" : "hover:bg-gray-100"}`}
+              >
+                すべて
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id as Category)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md ${selectedCategory === cat.id ? "bg-blue-50 text-blue-700" : "hover:bg-gray-100"}`}
+                >
+                  <cat.icon size={18} />
+                  <span>{cat.name}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </aside>
+
+        {/* メインコンテンツ */}
+        <main className="flex-1">
+          {currentView === "home" && (
+            <div className="space-y-4">
+              {filteredPosts.map((post) => (
+                <div 
+                  key={post.id} 
+                  className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-sm cursor-pointer"
+                  onClick={() => { setSelectedPost(post); setCurrentView("detail"); }}
+                >
+                  <h3 className="text-xl font-bold mb-2">{post.title}</h3>
+                  <p className="text-gray-600 line-clamp-2">{post.content}</p>
+                  <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
+                    <span className="bg-gray-100 px-2 py-1 rounded">{post.author}</span>
+                    <span>{post.createdAt}</span>
+                    <div className="flex items-center gap-1"><ThumbsUp size={14} /> {post.likes}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {currentView === "new" && (
+            <div className="bg-white p-8 rounded-lg border border-gray-200">
+              <h2 className="text-2xl font-bold mb-6">新規投稿作成</h2>
+              <form onSubmit={handleCreatePost} className="space-y-4">
+                <input
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  placeholder="タイトル"
+                  value={newPostTitle}
+                  onChange={(e) => setNewPostTitle(e.target.value)}
+                  required
+                />
+                <textarea
+                  className="w-full p-3 border border-gray-300 rounded-lg h-40"
+                  placeholder="プログラミングに関する質問や知見を書いてください"
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
+                  required
+                />
+                <div className="flex gap-2">
+                  <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg">投稿</button>
+                  <button type="button" onClick={() => setCurrentView("home")} className="bg-gray-200 px-6 py-2 rounded-lg">キャンセル</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {currentView === "detail" && selectedPost && (
+            <div className="bg-white p-8 rounded-lg border border-gray-200">
+               <button onClick={() => setCurrentView("home")} className="text-blue-600 mb-4 inline-block">← 戻る</button>
+               <h2 className="text-3xl font-bold mb-4">{selectedPost.title}</h2>
+               <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{selectedPost.content}</p>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}

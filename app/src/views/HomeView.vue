@@ -9,7 +9,7 @@ const posts = ref<any[]>([]);
 
 onMounted(async () => {
   try {
-    const res = await axios.get('/api/articles');
+    const res = await axios.get('http://localhost:8000/docs/articles');
     // APIのレスポンスをpostsにセット
     posts.value = res.data.map((item: any) => ({
       id: item.id,
@@ -69,7 +69,7 @@ const goToPost = () => {
           <input 
             v-model="searchQuery" 
             type="text" 
-            placeholder="キーワードから知恵を探す..." 
+            placeholder="キーワードから記事を探す..." 
           />
           <button class="search-button">🔍 検索</button>
         </div>
@@ -98,7 +98,7 @@ const goToPost = () => {
       <main class="main-content">
         <div class="list-header">
           <h2 class="section-title">
-            {{ selectedCategory }}の質問 ({{ filteredAndSortedPosts.length }}件)
+            {{ selectedCategory }}の記事 ({{ filteredAndSortedPosts.length }}件)
           </h2>
           
           <div class="sort-tabs">
@@ -139,7 +139,7 @@ const goToPost = () => {
           </article>
 
           <div v-if="filteredAndSortedPosts.length === 0" class="no-results">
-            「{{ searchQuery }}」に一致する質問は見つかりませんでした。
+            「{{ searchQuery }}」に一致する記事は見つかりませんでした。
           </div>
         </div>
       </main>

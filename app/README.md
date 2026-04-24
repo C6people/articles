@@ -117,6 +117,12 @@ export async function createArticle(title: string, body: string) {
 }
 ```
 
+> ⚠️ バックエンド（FastAPI）との通信には `axios` パッケージのインストールが必要です。
+> データの取得（一覧表示）や送信（記事投稿）など、APIとのやり取りをスムーズに行うために使用します。
+> ```bash
+> cd app && npm install axios
+> ```
+
 ### 5. `types/index.ts` — 型定義
 **「APIから返ってくるデータの形（型）」** を定義します。
 チーム内で「このデータにはどんな項目が入っているか」を共有するのに役立ちます。
