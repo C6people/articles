@@ -41,8 +41,8 @@ import { useRouter } from 'vue-router'
   */
 
   // --- ⬇️ 現時点のダミー判定 ⬇️ ---
-    const dummyID = "1234567"
-    const dummyPass = "password123"
+    const dummyID = "1350132"
+    const dummyPass = "KICkd1350132"
 
     if (userid.value !== dummyID || password.value !== dummyPass) {
         // 失敗
@@ -83,7 +83,7 @@ const togglePasswordVisibility = () => {
                     v-model="userid" 
                     :class="{ 'input-error': isError }"
                     required 
-                    placeholder="7桁学籍番号"
+                    placeholder="7桁学籍番号（半角）"
                 >
                 <div class="error-message">{{ errorMessage }}</div>
             </div>
@@ -97,7 +97,7 @@ const togglePasswordVisibility = () => {
                     v-model="password" 
                     :class="{ 'input-error': isError }"
                     required 
-                    placeholder="8文字以上の英数字"
+                    placeholder="8文字以上の英数字（半角）"
                     >
                     <span 
                         class="material-symbols-outlined" 
