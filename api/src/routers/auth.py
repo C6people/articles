@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_db
 import src.schemas.auth as auth_schema
 import src.cruds.auth as user_crud
-from src.core.security import verify_password  # 作成したハッシュ照合の関数をインポート
+from src.core.security import verify_password, create_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,9 +22,13 @@ async def login(
             detail="ユーザー名またはパスワードが正しくありません"
         )
 
-    # ユーザーが見つかった場合、この後のパスワード検証で user.password_hash を使い、
-    # JWT生成で user.id (UUID) を使用します。
-    return {
-        "message": "User found",
-        "user_id": str(user.id) # 型定義に基づいたUUID
-    }
+    # 4. JWTトークンの生成
+    # トークンの中身(Payload)にユーザー名とIDを入れます。
+    # 💡注意: user.idはUUID型なので、必ず str() で文字列に変換してから入れます！
+    access_token = create_access_token(
+        data={"sub": user.name, "user_id": str(user.id)}
+    )
+
+    # 5. レスポンスの返却
+    # IssueのAPI仕様通り、{"token": "生成されたトークン文字列"} の形で返す
+    return {"token": access_token}
