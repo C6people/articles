@@ -51,7 +51,7 @@ import { useRouter } from 'vue-router'
     } else {
     // 成功
         alert("ログインに成功しました。ホームへ移動します。")
-        router.push('/')
+        router.replace('/')
     }
 }
 
