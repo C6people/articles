@@ -9,7 +9,7 @@ const posts = ref<any[]>([]);
 
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/docs/articles');
+    const res = await axios.get('http://localhost:8000/articles');
     // APIのレスポンスをpostsにセット
     posts.value = res.data.map((item: any) => ({
       id: item.id,
@@ -26,7 +26,7 @@ onMounted(async () => {
   }
 });
 
-const categories = ["すべて", "プログラミング", "サーバーサイド", "デザイン", "その他"];
+//const categories = ["すべて", "プログラミング", "サーバーサイド", "デザイン", "その他"];
 
 // --- 2. 状態管理（検索・カテゴリー・ソート） ---
 const searchQuery = ref("");
