@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
 
@@ -28,9 +29,22 @@ const handleSignUp = async () => {
     return
   }
 
-  // TODO: APIでユーザー登録処理を行う
-  alert('登録に成功しました。ホームへ移動します。')
-  router.push('/')
+  try {
+    await axios.post('http://localhost:8000/auth/signup', {
+      name: userId.value,
+      password: password.value
+    })
+    
+    alert('登録に成功しました。ログイン画面へ移動します。')
+    router.push('/login')
+  } catch (error: any) {
+    isError.value = true
+    if (error.response && error.response.status === 400) {
+      errorMessage.value = error.response.data.detail
+    } else {
+      errorMessage.value = 'サーバーエラーが発生しました。時間を置いて再度お試しください。'
+    }
+  }
 }
 
 const togglePasswordVisibility = () => {
