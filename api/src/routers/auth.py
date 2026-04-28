@@ -7,7 +7,7 @@ from src.core.security import verify_password, create_access_token
 import src.schemas.user as user_schema
 import src.cruds.user as user_crud
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter()
 
 @router.post("/login")
 async def login(
@@ -35,9 +35,6 @@ async def login(
     # IssueのAPI仕様通り、{"token": "生成されたトークン文字列"} の形で返す
     return {"token": access_token}
 
-
-
-router = APIRouter()
 
 @router.post("/signup", response_model=user_schema.UserResponse, status_code=status.HTTP_201_CREATED)
 async def signup(user_in: user_schema.UserCreate, db: AsyncSession = Depends(get_db)):
