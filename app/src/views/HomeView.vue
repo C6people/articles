@@ -1,85 +1,91 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
 
 // --- 1. データ管理（ダミーデータ：後にAPI接続） ---
 const posts = ref([
-  { 
-    id: 1, 
-    title: "ReactとVue.jsの違いについて", 
-    content: "サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。", 
-    author: "Mahiro", 
-    category: "プログラミング", 
-    likes: 15, 
-    comments: 4, 
-    createdAt: "2026-04-22 18:00" 
+  {
+    id: 1,
+    title: "ReactとVue.jsの違いについて",
+    content:
+      "サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。",
+    author: "Mahiro",
+    category: "質問",
+    likes: 15,
+    comments: 4,
+    createdAt: "2026-04-22 18:00",
   },
-  { 
-    id: 2, 
-    title: "FastAPIでのDB接続エラー解決策", 
-    content: "PostgreSQLとの連携でバリデーションエラーが出た際の対処法です。Pydanticモデルの定義を見直しましょう。", 
-    author: "サーバー担当A", 
-    category: "サーバーサイド", 
-    likes: 10, 
-    comments: 2, 
-    createdAt: "2026-04-23 10:00" 
+  {
+    id: 2,
+    title: "FastAPIでのDB接続エラー解決策",
+    content:
+      "PostgreSQLとの連携でバリデーションエラーが出た際の対処法です。Pydanticモデルの定義を見直しましょう。",
+    author: "サーバー担当A",
+    category: "コラム",
+    likes: 10,
+    comments: 2,
+    createdAt: "2026-04-23 10:00",
   },
-  { 
-    id: 3, 
-    title: "ポートフォリオのデザイン案", 
-    content: "見やすいWebサイトを作るための配色の基本をまとめました。余白の使い方が重要です。", 
-    author: "佐藤", 
-    category: "デザイン", 
-    likes: 20, 
-    comments: 5, 
-    createdAt: "2026-04-21 12:00" 
-  }
+  {
+    id: 3,
+    title: "ポートフォリオのデザイン案",
+    content:
+      "見やすいWebサイトを作るための配色の基本をまとめました。余白の使い方が重要です。",
+    author: "佐藤",
+    category: "コラム",
+    likes: 20,
+    comments: 5,
+    createdAt: "2026-04-21 12:00",
+  },
 ]);
+/* カテゴリーの選択肢 */
+const categories = ["すべて", "質問", "制作物", "コラム", "その他"];
 
-const categories = ["すべて", "プログラミング", "サーバーサイド", "デザイン", "その他"];
-
-// --- 2. 状態管理（検索・カテゴリー・ソート） ---
+/* 2. 状態管理（検索・カテゴリー・ソート） */
 const searchQuery = ref("");
 const selectedCategory = ref("すべて");
-const sortOrder = ref<'desc' | 'asc'>('desc'); // desc: 新着順, asc: 古い順
-const router = useRouter()
+const sortOrder = ref<"desc" | "asc">("desc"); // desc: 新着順, asc: 古い順
+const router = useRouter();
 
-// --- 3. 検索・絞り込み・ソートの統合ロジック ---
+/*  3. 検索・絞り込み・ソートの統合ロジック */
 const filteredAndSortedPosts = computed(() => {
-  // ① まずは検索ワードとカテゴリーで絞り込む
-  let result = posts.value.filter(post => {
-    const isCategoryMatch = selectedCategory.value === "すべて" || post.category === selectedCategory.value;
-    const isSearchMatch = post.title.includes(searchQuery.value) || post.content.includes(searchQuery.value);
+  /* ① まずは検索ワードとカテゴリーで絞り込む */
+  let result = posts.value.filter((post) => {
+    const isCategoryMatch =
+      selectedCategory.value === "すべて" ||
+      post.category === selectedCategory.value;
+    const isSearchMatch =
+      post.title.includes(searchQuery.value) ||
+      post.content.includes(searchQuery.value);
     return isCategoryMatch && isSearchMatch;
   });
 
-  // ② 次に日付で並び替える（元のデータを壊さないようコピーしてから実行）
+  /* ② 次に日付で並び替える（元のデータを壊さないようコピーしてから実行） */
   return [...result].sort((a, b) => {
     const dateA = new Date(a.createdAt).getTime();
     const dateB = new Date(b.createdAt).getTime();
-    
-    return sortOrder.value === 'desc' 
-      ? dateB - dateA  // 新着順（大きい順）
+
+    return sortOrder.value === "desc"
+      ? dateB - dateA // 新着順（大きい順）
       : dateA - dateB; // 古い順（小さい順）
   });
 });
 
 const goToPost = () => {
-  router.push('/post');
+  router.push("/post");
 };
 </script>
 
 <template>
   <div class="full-screen-container">
-    
     <header class="main-header">
       <div class="header-inner">
         <h1 class="logo">プログラミング情報共有サイト</h1>
         <div class="search-bar">
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="キーワードから知恵を探す..." 
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="キーワードから知恵を探す..."
           />
           <button class="search-button">🔍 検索</button>
         </div>
@@ -88,13 +94,12 @@ const goToPost = () => {
     </header>
 
     <div class="content-wrapper">
-      
       <aside class="sidebar">
         <h2 class="section-title">カテゴリー</h2>
         <ul class="category-list">
-          <li 
-            v-for="cat in categories" 
-            :key="cat" 
+          <li
+            v-for="cat in categories"
+            :key="cat"
             class="category-item"
             :class="{ 'active-cat': selectedCategory === cat }"
             @click="selectedCategory = cat"
@@ -110,18 +115,18 @@ const goToPost = () => {
           <h2 class="section-title">
             {{ selectedCategory }}の質問 ({{ filteredAndSortedPosts.length }}件)
           </h2>
-          
+
           <div class="sort-tabs">
-            <button 
-              class="tab" 
-              :class="{ active: sortOrder === 'desc' }" 
+            <button
+              class="tab"
+              :class="{ active: sortOrder === 'desc' }"
               @click="sortOrder = 'desc'"
             >
               新着順
             </button>
-            <button 
-              class="tab" 
-              :class="{ active: sortOrder === 'asc' }" 
+            <button
+              class="tab"
+              :class="{ active: sortOrder === 'asc' }"
               @click="sortOrder = 'asc'"
             >
               古い順
@@ -130,15 +135,19 @@ const goToPost = () => {
         </div>
 
         <div class="post-list">
-          <article v-for="post in filteredAndSortedPosts" :key="post.id" class="post-card">
+          <article
+            v-for="post in filteredAndSortedPosts"
+            :key="post.id"
+            class="post-card"
+          >
             <div class="post-header">
               <span class="category-badge">{{ post.category }}</span>
               <span class="post-date">{{ post.createdAt }}</span>
             </div>
-            
+
             <h3 class="post-title">{{ post.title }}</h3>
             <p class="post-summary">{{ post.content }}</p>
-            
+
             <div class="post-footer">
               <span class="author-name">👤 {{ post.author }}</span>
               <div class="post-stats">
@@ -313,7 +322,7 @@ const goToPost = () => {
   padding: 25px;
   border-radius: 8px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .post-header {
