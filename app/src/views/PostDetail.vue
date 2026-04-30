@@ -6,13 +6,16 @@ const route = useRoute();
 const article = ref(null);
 const loading = ref(true);
 const router = useRouter();
+const searchQuery = ref("");
 
 onMounted(() => {
   // ダミーデータ
   article.value = {
     id: route.params.id,
     title: "ReactとVue.jsの違いについて",
-    body: `1. はじめに
+    body: `サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。
+    
+1. はじめに
 
 普段はNode.jsやPythonでAPIを叩いているサーバーサイド寄りですが、フロントエンドの基礎を固めるために、モダンな2大フレームワークである「React」と「Vue.js」を比較してみました。
 
@@ -24,11 +27,9 @@ ReactはJS中心で設計されており、柔軟性が高いです。
 
 4. まとめ
 用途によって使い分けるのがベストだと感じました。`,
-    created_at: "2026-04-22T18:00:00",
-    genre: "プログラミング",
-    user: {
-      name: "Mahiro"
-    }
+    createdAt: "2026-04-22T18:00:00",
+    category: "プログラミング",
+    author: "Mahiro"
   };
 
   loading.value = false;
@@ -41,9 +42,30 @@ const formatDate = (date) => {
 const backToHome = () => {
   router.push("/");
 };
+
+const goToPost = () => {
+  router.push("/post");
+};
 </script>
 
 <template>
+    <header class="main-header">
+      <div class="header-inner">
+        <h1 class="logo" @click="backToHome">
+                プログラミング情報共有サイト
+        </h1>
+        <div class="search-bar">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="キーワードから知恵を探す..."
+          />
+          <button class="search-button">🔍 検索</button>
+        </div>
+        <button class="post-button" @click="goToPost">＋ 質問する</button>
+      </div>
+    </header>
+
   <div class="page">
     <div v-if="loading">読み込み中...</div>
 
@@ -58,13 +80,13 @@ const backToHome = () => {
         <h1 class="title">{{ article.title }}</h1>
 
         <div class="meta">
-          <span class="author">{{ article.user?.name }}</span>
-          <span class="genre">{{ article.genre }}</span>
-          <span class="date">{{ formatDate(article.created_at) }}</span>
+            <span class="author">{{ article.author }}</span>
+            <span class="genre">{{ article.category }}</span>
+            <span class="date">{{ formatDate(article.createdAt) }}</span>
         </div>
 
         <div class="body">
-          {{ article.body }}
+            {{ article.body }}
         </div>
       </div>
     </div>
@@ -80,10 +102,10 @@ const backToHome = () => {
 }
 
 .container {
-  width: 800px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
-/* 横長ボタン（変更なし） */
 .back-button {
   display: inline-block;
   padding: 10px 24px;
@@ -102,7 +124,6 @@ const backToHome = () => {
   color: white;
 }
 
-/* ★ 影追加 */
 .main {
   background: white;
   padding: 30px;
@@ -115,7 +136,6 @@ const backToHome = () => {
   margin-bottom: 16px;
 }
 
-/* ★ 縦並びに変更 */
 .meta {
   display: flex;
   flex-direction: column;
@@ -125,7 +145,6 @@ const backToHome = () => {
   font-size: 14px;
 }
 
-/* 見やすくする */
 .meta span::before {
   font-weight: bold;
   color: #333;
@@ -147,5 +166,66 @@ const backToHome = () => {
 .body {
   white-space: pre-wrap;
   line-height: 1.7;
+}
+
+/* ヘッダー装飾 */
+.main-header {
+  width: 100%;
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  width: 100%;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.logo {
+  font-size: 24px;
+  color: #007bff;
+  margin: 0;
+  cursor: pointer;
+}
+
+.search-bar {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 30px;
+  display: flex;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+}
+
+.search-bar input {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  outline: none;
+}
+
+.search-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  cursor: pointer;
+}
+
+.post-button {
+  background-color: #ff5a5f;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
 }
 </style>
