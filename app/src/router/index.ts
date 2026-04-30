@@ -27,7 +27,7 @@ const routes = [
     component: SignUpView
   },
   {
-    path: '/detail',
+    path: '/detail/:id',
     name: 'Detail',
     component: PostDetail
   }
