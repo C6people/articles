@@ -10,8 +10,10 @@ const searchQuery = ref("");
 
 onMounted(() => {
   // ダミーデータ
+  const id = String(route.params.id)
+
   article.value = {
-    id: route.params.id,
+    id: id,
     title: "ReactとVue.jsの違いについて",
     body: `サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。
     
