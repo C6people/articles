@@ -1,40 +1,22 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
 
-// --- 1. データ管理（ダミーデータ：後にAPI接続） ---
-const posts = ref([
-  { 
-    id: 1, 
-    title: "ReactとVue.jsの違いについて", 
-    content: "サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。", 
-    author: "Mahiro", 
-    category: "プログラミング", 
-    likes: 15, 
-    comments: 4, 
-    createdAt: "2026-04-22 18:00" 
-  },
-  { 
-    id: 2, 
-    title: "FastAPIでのDB接続エラー解決策", 
-    content: "PostgreSQLとの連携でバリデーションエラーが出た際の対処法です。Pydanticモデルの定義を見直しましょう。", 
-    author: "サーバー担当A", 
-    category: "サーバーサイド", 
-    likes: 10, 
-    comments: 2, 
-    createdAt: "2026-04-23 10:00" 
-  },
-  { 
-    id: 3, 
-    title: "ポートフォリオのデザイン案", 
-    content: "見やすいWebサイトを作るための配色の基本をまとめました。余白の使い方が重要です。", 
-    author: "佐藤", 
-    category: "デザイン", 
-    likes: 20, 
-    comments: 5, 
-    createdAt: "2026-04-21 12:00" 
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { fetchArticles } from '@/api/articles';
+import type { Article } from '@/api/articles';
+
+
+// --- 1. データ管理（API接続） ---
+const posts = ref<Article[]>([]);
+
+onMounted(async () => {
+  try {
+    posts.value = await fetchArticles();
+  } catch (e) {
+    // エラー時は空配列のまま
+    // 必要に応じてエラーメッセージ表示も可
   }
-]);
+});
 
 const categories = ["すべて", "プログラミング", "サーバーサイド", "デザイン", "その他"];
 
