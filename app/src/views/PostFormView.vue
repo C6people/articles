@@ -37,36 +37,61 @@ const showError = (fieldId: string, message: string) => {
 }
 
 // フォーム送信処理
-const handleSubmit = (event: Event) => {
+const handleSubmit = async (event: Event) => {
   event.preventDefault()
   clearErrors()
 
   let hasError = false
-  let firstInvalidField: any = null
 
   fields.forEach(field => {
     const value = field.value.value.trim()
     if (!value) {
       showError(field.id, field.name + 'を入力してください')
       hasError = true
-      if (!firstInvalidField) {
-        firstInvalidField = document.getElementById(field.id)
-      }
     }
   })
 
-  if (!hasError) {
-    // バリデーション成功時に Home.vue(/) へ遷移
-    router.push('/')
-  } else {
-    // エラーがある場合はフォーカス
-    if (firstInvalidField) {
-      try {
-        firstInvalidField.focus()
-      } catch (e) {
-        // ignore
-      }
+  if (hasError) return
+
+  try {
+    // API振り分け
+    const isQuestion = genre.value === "question"
+    const url = isQuestion
+      ? "http://localhost:8000/questions"
+      : "http://localhost:8000/articles"
+
+    // 送信データ（バックのschemaに合わせる）
+    const body = isQuestion
+      ? {
+          title: title.value,
+          body: content.value,
+          user_id: "94d81f82-2082-421d-bf9d-94aced3e0fbe" // ← 後でログインユーザーに変更
+        }
+      : {
+          title: title.value,
+          body: content.value,
+          genre: genre.value,
+          user_id: "94d81f82-2082-421d-bf9d-94aced3e0fbe"
+        }
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    })
+
+    if (!res.ok) {
+      throw new Error("投稿に失敗")
     }
+
+    alert("投稿成功")
+    router.push("/")
+
+  } catch (e) {
+    console.error(e)
+    alert("投稿に失敗しました")
   }
 }
 
@@ -123,10 +148,10 @@ onMounted(() => {
             @blur="clearFieldError('genre')"
           >
             <option value="">選択してください</option>
-            <option value="質問">質問</option>
-            <option value="制作物">制作物</option>
-            <option value="コラム">コラム</option>
-            <option value="その他">その他</option>
+            <option value="question">質問</option>
+            <option value="project">制作物</option>
+            <option value="column">コラム</option>
+            <option value="other">その他</option>
           </select>
           <div class="error-msg" v-if="errors.genre">{{ errors.genre }}</div>
         </div>
