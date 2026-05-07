@@ -1,31 +1,30 @@
-name: AI-Review
+name: AI-Review-Gemini
 on:
-  workflow_dispatch:
   pull_request:
-permissions:
-  contents: write
-  pull-requests: write
+    types: [opened, synchronize]
+
 jobs:
-  my-job:
-    name: opencode
+  review:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
-      # 使用するLLMに応じて必要なAPIキーを追加
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      # GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      # GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+      # Geminiのキーをセット
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-      - uses: rmacklin/fetch-through-merge-base@v0
       - uses: oven-sh/setup-bun@v2
       - run: bun install -g opencode-ai
-      - run: opencode run --agent=review "$(git diff ${{ github.base_ref }})" > ai-review.md
-      - name: PR comment with file
+      
+      # OpenCodeを実行。モデルにgeminiを指定するのがポイント
+      - run: |
+          opencode run \
+            --model=google/gemini-1.5-flash \
+            --agent=review \
+            "$(git diff origin/${{ github.base_ref }}...HEAD)" > ai-review.md
+            
+      - name: PR comment
         uses: mshick/add-pr-comment@v2
         with:
           message-path: ai-review.md
-          refresh-message-position: true
-          ``
