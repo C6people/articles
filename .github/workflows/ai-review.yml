@@ -9,36 +9,50 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    env:
-      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} # Secretの名前と合わせる
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # これを追加！過去の履歴を全部取得して差分を見れるようにします
+          fetch-depth: 0
 
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install -g opencode-ai
-      
-      - name: Run Review
+      - name: Run Gemini Review
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
-          # 1. 差分を取得
-          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD)
+          # 1. 差分を取得してエンコード（特殊文字対策）
+          git diff origin/${{ github.base_ref }}...HEAD > diff.txt
           
-          # 2. 差分が空なら終了
-          if [ -z "$DIFF" ]; then
-            echo "No changes found."
-            exit 0
-          fi
+          # 2. 指揮書（review.md）の内容を取得
+          PROMPT=$(cat .opencode/agent/review.md)
 
-          # 3. OpenCodeを実行
-          # echoで差分を流し込み、引数を最小限にします
-          echo "$DIFF" | opencode run \
-            --model google/gemini-1.5-flash \
-            --agent review > ai-review.md
-            
+          # 3. Pythonスクリプトを使って確実にGeminiを叩く（シェルスクリプトの限界を回避）
+          python3 - <<EOF
+          import os
+          import json
+          import http.client
+
+          api_key = os.environ['GOOGLE_API_KEY']
+          with open('diff.txt', 'r') as f:
+              diff_text = f.read()
+          
+          prompt = """$PROMPT"""
+          content = prompt + "\n\n以下のコード差分をレビューしてください:\n\n" + diff_text
+          
+          data = json.dumps({"contents": [{"parts": [{"text": content}]}]})
+          
+          conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
+          conn.request("POST", f"/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}", data, {"Content-Type": "application/json"})
+          res = conn.getresponse()
+          result = json.loads(res.read().decode())
+          
+          with open('ai-review.md', 'w') as f:
+              try:
+                  f.write(result['candidates'][0]['content']['parts'][0]['text'])
+              except:
+                  print("APIからの応答が不正です:", result)
+          EOF
+
       - name: PR comment
-        # ファイルが存在し、かつ中身がある時だけコメントする
-        if: hashFiles('ai-review.md') != ''
+        if: success() && hashFiles('ai-review.md') != ''
         uses: mshick/add-pr-comment@v2
         with:
           message-path: ai-review.md
