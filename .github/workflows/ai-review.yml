@@ -21,14 +21,22 @@ jobs:
       
       - name: Run Review
         run: |
-          # 差分を一時ファイルに書き出す（特殊文字によるエラーを防ぐため）
+          # 1. 差分を一時ファイルに出力
           git diff origin/${{ github.base_ref }}...HEAD > diff.txt
           
-          # AIを実行
+          # 2. 差分が空なら終了
+          if [ ! -s diff.txt ]; then
+            echo "No changes found."
+            exit 0
+          fi
+
+          # 3. OpenCodeを実行
+          # --file でdiffファイルを添付し、最後に「レビューして」というメッセージを添えます
           opencode run \
-            --model=google/gemini-1.5-flash \
-            --agent=review \
-            --input-file=diff.txt > ai-review.md
+            --model google/gemini-1.5-flash \
+            --agent review \
+            --file diff.txt \
+            "添付した diff.txt の内容をレビューしてください。" > ai-review.md
             
       - name: PR comment
         # ファイルが存在し、かつ中身がある時だけコメントする
