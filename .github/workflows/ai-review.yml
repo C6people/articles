@@ -21,22 +21,20 @@ jobs:
       
       - name: Run Review
         run: |
-          # 1. 差分を一時ファイルに出力
-          git diff origin/${{ github.base_ref }}...HEAD > diff.txt
+          # 1. 差分を取得
+          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD)
           
           # 2. 差分が空なら終了
-          if [ ! -s diff.txt ]; then
+          if [ -z "$DIFF" ]; then
             echo "No changes found."
             exit 0
           fi
 
           # 3. OpenCodeを実行
-          # --file でdiffファイルを添付し、最後に「レビューして」というメッセージを添えます
-          opencode run \
+          # echoで差分を流し込み、引数を最小限にします
+          echo "$DIFF" | opencode run \
             --model google/gemini-1.5-flash \
-            --agent review \
-            --file diff.txt \
-            "添付した diff.txt の内容をレビューしてください。" > ai-review.md
+            --agent review > ai-review.md
             
       - name: PR comment
         # ファイルが存在し、かつ中身がある時だけコメントする
