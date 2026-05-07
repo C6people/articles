@@ -1,3 +1,26 @@
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+// 投稿ボタンがクリックされたときの処理0507
+const handlePostClick = () => {
+    router.push('/post'); // 投稿画面のパスを指定
+};
+
+// 検索入力用の関数を追加（eventが暗黙的にanyみたいなエラーを消すためのもの）0507
+// event の型を明示的に指定
+const handleSearch = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const keyword = target.value;
+    console.log('入力されました:', target.value);
+    if (!keyword) return; // 空っぽなら何もしない
+    // URLを /?q=キーワード に書き換えて移動する
+    router.push({ path: '/', query: { q: target.value } });
+};
+
+
+</script>
 <template>
     <div class="article-header-wrapper">
         <header class="site-header">
@@ -14,9 +37,9 @@
                     <div class="search-bar">
                         <span class="material-symbols-outlined">search</span>
                         <input 
-                        type="text" 
-                        placeholder="キーワードから知恵を探す"
-                        @input="handleSearch"
+                            type="text" 
+                            placeholder="キーワードから知恵を探す"
+                            @keydown.enter="handleSearch"
                         >
                     </div>
                     <button class="post-button" @click="handlePostClick">+ 投稿する</button>

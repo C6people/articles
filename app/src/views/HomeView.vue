@@ -2,6 +2,12 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import CommonHeader from "@/components/CommonHeader.vue";
+// --------------------------
+// ↓暫定検索ロジックのためのしょうもないインポート（後で消す）0507
+import { watch } from 'vue'; 
+import { useRoute } from 'vue-router';
+const route = useRoute();
+// ----------------------------------
 
 // --- 1. データ管理（ダミーデータ：後にAPI接続） ---
 const posts = ref([
@@ -68,6 +74,20 @@ const searchQuery = ref("");
 const selectedCategory = ref("すべて");
 const sortOrder = ref<"desc" | "asc">("desc"); // desc: 新着順, asc: 古い順
 const router = useRouter();
+
+// ----------------------------------------------------
+// 暫定的なロジック：しょうもないURLクエリパラメータ監視ロジック（後で消す）0507
+// URLのクエリパラメータを監視して、searchQueryに反映させるロジック
+// 【追加】URLの ?q=... を監視して、searchQuery に代入する
+watch(
+  () => route.query.q, 
+  (newVal) => {
+    // URLに値があればそれを、なければ空文字をセット
+    searchQuery.value = (newVal as string) || "";
+  }, 
+  { immediate: true } // 画面が開いた瞬間も実行する
+);
+// ----------------------------------------------------
 
 /*  3. 検索・絞り込み・ソートの統合ロジック */
 const filteredAndSortedPosts = computed(() => {
