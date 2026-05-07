@@ -65,7 +65,8 @@ const handleSubmit = async (event: Event) => {
       ? {
           title: title.value,
           body: content.value,
-          user_id: "94d81f82-2082-421d-bf9d-94aced3e0fbe" // ← 後でログインユーザーに変更
+          // ↓テスト時はuserのハッシュ値を直接入れておいてください
+          user_id: "94d81f82-2082-421d-bf9d-94aced3e0fbe" // 後で消す
         }
       : {
           title: title.value,
