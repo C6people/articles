@@ -6,6 +6,7 @@ from uuid import UUID
 from src.database import get_db
 import src.schemas.article as article_schema
 import src.cruds.article as article_crud
+from src.core.deps import get_current_user_id
 
 router = APIRouter()
 
@@ -29,9 +30,10 @@ async def read_article(article_id: UUID, db: AsyncSession = Depends(get_db)):
     return article
 
 @router.post("/articles", response_model=article_schema.ArticleResponse, status_code=201)
-async def create_article(article_in: article_schema.ArticleCreate, db: AsyncSession = Depends(get_db)):
+async def create_article(article_in: article_schema.ArticleCreate,
+                         db: AsyncSession = Depends(get_db),
+                         user_id: UUID = Depends(get_current_user_id)):
     """
     新しい記事を作成します。
-    ※現在は暫定的にリクエストボディから user_id を受け取ります。
     """
-    return await article_crud.create_article(db=db, article_in=article_in)
+    return await article_crud.create_article(db=db, article_in=article_in, user_id=user_id)

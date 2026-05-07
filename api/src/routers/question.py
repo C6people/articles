@@ -6,6 +6,7 @@ from uuid import UUID
 from src.database import get_db
 import src.schemas.question as question_schema
 import src.cruds.question as question_crud
+from src.core.deps import get_current_user_id
 
 router = APIRouter()
 
@@ -29,9 +30,10 @@ async def read_question(question_id: UUID, db: AsyncSession = Depends(get_db)):
     return question
 
 @router.post("/questions", response_model=question_schema.QuestionResponse, status_code=201)
-async def create_question(question_in: question_schema.QuestionCreate, db: AsyncSession = Depends(get_db)):
+async def create_question(question_in: question_schema.QuestionCreate, 
+                          db: AsyncSession = Depends(get_db),
+                          user_id: UUID = Depends(get_current_user_id)):
     """
     新しい質問を作成します。
-    ※現在は暫定的にリクエストボディから user_id を受け取ります。
     """
-    return await question_crud.create_question(db=db, question_in=question_in)
+    return await question_crud.create_question(db=db, question_in=question_in, user_id=user_id)
