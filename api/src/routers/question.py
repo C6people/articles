@@ -35,6 +35,5 @@ async def create_question(question_in: question_schema.QuestionCreate,
                           user_id: UUID = Depends(get_current_user_id)):
     """
     新しい質問を作成します。
-    ※現在は暫定的にリクエストボディから user_id を受け取ります。
     """
     return await question_crud.create_question(db=db, question_in=question_in, user_id=user_id)

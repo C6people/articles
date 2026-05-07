@@ -35,6 +35,5 @@ async def create_article(article_in: article_schema.ArticleCreate,
                          user_id: UUID = Depends(get_current_user_id)):
     """
     新しい記事を作成します。
-    ※現在は暫定的にリクエストボディから user_id を受け取ります。
     """
     return await article_crud.create_article(db=db, article_in=article_in, user_id=user_id)
