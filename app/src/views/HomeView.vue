@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import CommonHeader from "@/components/CommonHeader.vue";
 
 // --- 1. データ管理（ダミーデータ：後にAPI接続） ---
 const posts = ref([
@@ -35,7 +36,28 @@ const posts = ref([
     category: "コラム",
     likes: 20,
     comments: 5,
-    createdAt: "2026-04-21 12:00",
+    createdAt: "2026-05-06 8:32",
+  },
+  {
+    id: 4,
+    title: "2年次に制作したWebアプリの紹介",
+    content: "2年次に制作したWebアプリの概要と技術スタックについて説明します。",
+    author: "kouki",
+    category: "制作物",
+    likes: 6,
+    comments: 3,
+    createdAt: "2026-05-07 9:30",
+  },
+  {
+    id: 5,
+    title: "自己PRの書き方について",
+    content:
+      "自己PRを書く際のポイントや注意点をまとめました。あくまで個人の考えです。",
+    author: "hira",
+    category: "その他",
+    likes: 12,
+    comments: 6,
+    createdAt: "2026-05-06 10:05",
   },
 ]);
 /* カテゴリーの選択肢 */
@@ -78,20 +100,7 @@ const goToPost = () => {
 
 <template>
   <div class="full-screen-container">
-    <header class="main-header">
-      <div class="header-inner">
-        <h1 class="logo">プログラミング情報共有サイト</h1>
-        <div class="search-bar">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="キーワードから知恵を探す..."
-          />
-          <button class="search-button">🔍 検索</button>
-        </div>
-        <button class="post-button" @click="goToPost">＋ 質問する</button>
-      </div>
-    </header>
+    <CommonHeader />
 
     <div class="content-wrapper">
       <aside class="sidebar">
@@ -325,6 +334,12 @@ const goToPost = () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.post-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
 .post-header {
   display: flex;
   justify-content: space-between;
@@ -344,6 +359,10 @@ const goToPost = () => {
   font-size: 20px;
   margin: 0 0 10px 0;
   color: #333;
+  hover {
+    color: #007bff;
+    cursor: pointer;
+  }
 }
 
 .post-summary {
