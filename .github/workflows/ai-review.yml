@@ -54,7 +54,8 @@ jobs:
           data = json.dumps({"contents": [{"parts": [{"text": content}]}]})
           
           conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
-          conn.request("POST", f"/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}", data, {"Content-Type": "application/json"})
+          # v1beta を v1 に変更し、さらにエンドポイントを少し調整します
+          conn.request("POST", f"/v1/models/gemini-1.5-flash:generateContent?key={api_key}", data, {"Content-Type": "application/json"})
           res = conn.getresponse()
           res_data = res.read().decode()
           result = json.loads(res_data)
