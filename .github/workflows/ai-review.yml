@@ -10,7 +10,8 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -18,41 +19,57 @@ jobs:
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
+          # 差分を取得
           git diff origin/${{ github.base_ref }}...HEAD > diff.txt
-
+          
+          # PythonでAPIを叩く
           python3 - <<'EOF'
           import os, json, http.client
 
           api_key = os.environ.get('GOOGLE_API_KEY')
+          if not api_key:
+              print("Error: GOOGLE_API_KEY is not set in Secrets")
+              exit(1)
+
           with open('diff.txt', 'r') as f:
               diff_text = f.read()
+          
+          if not diff_text.strip():
+              print("No diff found. Skipping review.")
+              exit(0)
 
-          prompt = "あなたはレビュー担当です。以下の差分を日本語でレビューし、最後にGIF画像を1枚貼ってください。"
-          content = f"{prompt}\n\n{diff_text}"
+          # 指示書を埋め込み
+          prompt = """
+          あなたはコードレビューの専門家です。以下のルールでレビューしてください。
+          - 日本語で回答すること
+          - 最後に必ず評価に応じた画像を1枚貼ること
+          
+          ### 高評価
+          ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTlxODNqNWR4bnQwZHpkM2VlYmVzNGsyaTQ4eGJ2NWp2eTVkYTFibSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/rrasLFSTyi4Th1e8Xo/giphy.gif)
+          ### 中評価
+          ![画像](https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2dxdDF1ZnFxbmJ2OXBjbjV0dTlvOXJycWc1M2lhdXFpODBlYWVtMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/crPtfTE2O00qrDgmm7/giphy.gif)
+          ### 低評価
+          ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3Vza3FiMjA3eXNxZmdqanV4OGd0M3RkMnB2Y2JsNXhjY3p6bTBqZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/OFKgUAiirX0CPUJ3Jn/giphy.gif)
+          """
+
+          content = f"{prompt}\n\n以下のコード差分をレビューしてください:\n{diff_text}"
           data = json.dumps({"contents": [{"parts": [{"text": content}]}]})
           
           conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
           conn.request("POST", f"/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}", data, {"Content-Type": "application/json"})
           res = conn.getresponse()
           res_data = res.read().decode()
-          
-          # --- ここでログを強制的に出力するようにします ---
-          print("--- API Response Start ---")
-          print(res_data)
-          print("--- API Response End ---")
-
           result = json.loads(res_data)
+          
           if 'candidates' in result:
               with open('ai-review.md', 'w') as f:
                   f.write(result['candidates'][0]['content']['parts'][0]['text'])
           else:
-              print("Error: 'candidates' not found in response.")
+              print("API Error Response:", res_data)
+              exit(1)
           EOF
 
-          # ファイルが作成されたか確認
-          ls -l ai-review.md || echo "ai-review.md does not exist"
-
-      - name: PR comment
+      - name: Post Comment
         if: success() && hashFiles('ai-review.md') != ''
         uses: mshick/add-pr-comment@v2
         with:
