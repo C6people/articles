@@ -18,37 +18,52 @@ jobs:
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
-          # 1. 差分を取得してエンコード（特殊文字対策）
+          # 1. 差分をファイルに保存
           git diff origin/${{ github.base_ref }}...HEAD > diff.txt
-          
-          # 2. 指揮書（review.md）の内容を取得
-          PROMPT=$(cat .opencode/agent/review.md)
 
-          # 3. Pythonスクリプトを使って確実にGeminiを叩く（シェルスクリプトの限界を回避）
-          python3 - <<EOF
-          import os
-          import json
-          import http.client
+          # 2. PythonでGemini APIを叩く（指示書をスクリプト内に直接埋め込み）
+          python3 - <<'EOF'
+          import os, json, http.client
 
-          api_key = os.environ['GOOGLE_API_KEY']
+          api_key = os.environ.get('GOOGLE_API_KEY')
+          if not api_key:
+              print("Error: GOOGLE_API_KEY is not set")
+              exit(1)
+
           with open('diff.txt', 'r') as f:
               diff_text = f.read()
-          
-          prompt = """$PROMPT"""
-          content = prompt + "\n\n以下のコード差分をレビューしてください:\n\n" + diff_text
-          
+          if not diff_text.strip():
+              print("No diff found.")
+              exit(0)
+
+          # --- あなたの指示書をここに直接埋め込みました ---
+          prompt = """
+          あなたは「git diff の結果だけを見て、その変更範囲のみをレビューする」専門エージェントです。
+          日本語で、丁寧かつ簡潔に記述してください。
+          最後に必ず評価に応じた画像を添付してください。
+
+          ### 高評価
+          ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTlxODNqNWR4bnQwZHpkM2VlYmVzNGsyaTQ4eGJ2NWp2eTVkYTFibSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/rrasLFSTyi4Th1e8Xo/giphy.gif)
+          ### 中評価
+          ![画像](https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2dxdDF1ZnFxbmJ2OXBjbjV0dTlvOXJycWc1M2lhdXFpODBlYWVtMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/crPtfTE2O00qrDgmm7/giphy.gif)
+          ### 低評価
+          ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3Vza3FiMjA3eXNxZmdqanV4OGd0M3RkMnB2Y2JsNXhjY3p6bTBqZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/OFKgUAiirX0CPUJ3Jn/giphy.gif)
+          """
+
+          content = f"{prompt}\n\n以下をレビューしてください:\n{diff_text}"
           data = json.dumps({"contents": [{"parts": [{"text": content}]}]})
           
           conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
           conn.request("POST", f"/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}", data, {"Content-Type": "application/json"})
           res = conn.getresponse()
-          result = json.loads(res.read().decode())
+          res_data = res.read().decode()
+          result = json.loads(res_data)
           
-          with open('ai-review.md', 'w') as f:
-              try:
+          if 'candidates' in result:
+              with open('ai-review.md', 'w') as f:
                   f.write(result['candidates'][0]['content']['parts'][0]['text'])
-              except:
-                  print("APIからの応答が不正です:", result)
+          else:
+              print("API Error:", res_data)
           EOF
 
       - name: PR comment
