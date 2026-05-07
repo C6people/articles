@@ -10,7 +10,7 @@ jobs:
       contents: read
       pull-requests: write
     env:
-      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} # Secretの名前と合わせる
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,18 +21,14 @@ jobs:
       
       - name: Run Review
         run: |
-          # 差分を変数に入れる（PRのベースブランチと比較）
-          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD)
+          # 差分を一時ファイルに書き出す（特殊文字によるエラーを防ぐため）
+          git diff origin/${{ github.base_ref }}...HEAD > diff.txt
           
-          # 差分がある時だけ実行
-          if [ -z "$DIFF" ]; then
-            echo "No changes to review."
-          else
-            opencode run \
-              --model=google/gemini-1.5-flash \
-              --agent=review \
-              "$DIFF" > ai-review.md
-          fi
+          # AIを実行
+          opencode run \
+            --model=google/gemini-1.5-flash \
+            --agent=review \
+            --input-file=diff.txt > ai-review.md
             
       - name: PR comment
         # ファイルが存在し、かつ中身がある時だけコメントする
