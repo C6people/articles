@@ -7,7 +7,7 @@ from uuid import UUID
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 # JWT設定
-SECRET_KEY = "your_secret_key"
+SECRET_KEY = SECRET_KEY = "your-super-secret-key-for-pbl12"
 ALGORITHM = "HS256"
 
 
