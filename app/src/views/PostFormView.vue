@@ -54,6 +54,13 @@ const handleSubmit = async (event: Event) => {
   if (hasError) return
 
   try {
+    const token = localStorage.getItem("token")
+    console.log(token)// 後で消す
+    if (!token) {
+      alert("ログインしてください")
+      router.push("/login")
+      return
+    }
     // API振り分け
     const isQuestion = genre.value === "question"
     const url = isQuestion
@@ -64,21 +71,18 @@ const handleSubmit = async (event: Event) => {
     const body = isQuestion
       ? {
           title: title.value,
-          body: content.value,
-          // ↓テスト時はuserのハッシュ値を直接入れておいてください
-          user_id: "94d81f82-2082-421d-bf9d-94aced3e0fbe" // 後で消す
+          body: content.value
         }
       : {
           title: title.value,
-          body: content.value,
-          genre: genre.value,
-          user_id: "94d81f82-2082-421d-bf9d-94aced3e0fbe"
+          body: content.value
         }
 
     const res = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify(body)
     })
