@@ -1,4 +1,4 @@
-name: AI-Review-Gemini
+name: AI-Review-Final
 on:
   pull_request:
     types: [opened, synchronize]
@@ -10,66 +10,58 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Run Gemini Review
+      - name: Run Review
         env:
-          # ここを登録名（GEMINI_API_KEY）に合わせました！
-          API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git diff origin/${{ github.base_ref }}...HEAD > diff.txt
-          
+          # Pythonスクリプトを直接実行
           python3 - <<'EOF'
-          import os, json, http.client
+          import os, json, http.client, subprocess
 
-          api_key = os.environ.get('API_KEY')
-          if not api_key:
-              print("Error: GEMINI_API_KEY is not set in Secrets")
-              exit(1)
+          # 1. 差分を取得
+          try:
+              diff = subprocess.check_output(['git', 'diff', 'origin/main...HEAD']).decode()
+          except:
+              diff = subprocess.check_output(['git', 'diff', 'HEAD~1...HEAD']).decode()
 
-          with open('diff.txt', 'r') as f:
-              diff_text = f.read()
-          
-          if not diff_text.strip():
-              print("No diff found. Skipping review.")
+          if not diff.strip():
+              print("No diff found.")
               exit(0)
 
-          prompt = """
-          あなたはコードレビューの専門家です。以下のルールでレビューしてください。
-          - 日本語で回答すること
-          - 最後に必ず評価に応じた画像を1枚貼ること
-          
-          ### 高評価
-          ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTlxODNqNWR4bnQwZHpkM2VlYmVzNGsyaTQ4eGJ2NWp2eTVkYTFibSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/rrasLFSTyi4Th1e8Xo/giphy.gif)
-          ### 中評価
-          ![画像](https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2dxdDF1ZnFxbmJ2OXBjbjV0dTlvOXJycWc1M2lhdXFpODBlYWVtMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/crPtfTE2O00qrDgmm7/giphy.gif)
-          ### 低評価
-          ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3Vza3FiMjA3eXNxZmdqanV4OGd0M3RkMnB2Y2JsNXhjY3p6bTBqZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/OFKgUAiirX0CPUJ3Jn/giphy.gif)
+          # 2. Gemini APIを叩く
+          api_key = os.environ.get('GEMINI_API_KEY')
+          prompt = """あなたはコードレビューの専門家です。以下の差分を日本語でレビューし、最後に必ず評価に応じた画像を1枚貼ってください。
+          ### 高評価: ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTlxODNqNWR4bnQwZHpkM2VlYmVzNGsyaTQ4eGJ2NWp2eTVkYTFibSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/rrasLFSTyi4Th1e8Xo/giphy.gif)
+          ### 中評価: ![画像](https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2dxdDF1ZnFxbmJ2OXBjbjV0dTlvOXJycWc1M2lhdXFpODBlYWVtMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/crPtfTE2O00qrDgmm7/giphy.gif)
+          ### 低評価: ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3Vza3FiMjA3eXNxZmdqanV4OGd0M3RkMnB2Y2JsNXhjY3p6bTBqZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/OFKgUAiirX0CPUJ3Jn/giphy.gif)
           """
-
-          content = f"{prompt}\n\n以下のコード差分をレビューしてください:\n{diff_text}"
-          data = json.dumps({"contents": [{"parts": [{"text": content}]}]})
           
+          body = json.dumps({"contents": [{"parts": [{"text": f"{prompt}\n\n{diff}"}]}]})
           conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
-          # v1beta を v1 に変更し、さらにエンドポイントを少し調整します
-          conn.request("POST", f"/v1/models/gemini-1.5-flash:generateContent?key={api_key}", data, {"Content-Type": "application/json"})
+          conn.request("POST", f"/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}", body, {"Content-Type": "application/json"})
           res = conn.getresponse()
-          res_data = res.read().decode()
-          result = json.loads(res_data)
+          res_data = json.loads(res.read().decode())
           
-          if 'candidates' in result:
-              with open('ai-review.md', 'w') as f:
-                  f.write(result['candidates'][0]['content']['parts'][0]['text'])
-          else:
-              print("API Error Response:", res_data)
+          if 'candidates' not in res_data:
+              print("API Error:", res_data)
               exit(1)
-          EOF
+          
+          review_text = res_data['candidates'][0]['content']['parts'][0]['text']
 
-      - name: Post Comment
-        if: success() && hashFiles('ai-review.md') != ''
-        uses: mshick/add-pr-comment@v2
-        with:
-          message-path: ai-review.md
+          # 3. GitHub CLIを使って直接コメント
+          with open('review.md', 'w') as f:
+              f.write(review_text)
+          
+          pr_number = os.environ.get('GITHUB_REF', '').split('/')[-2]
+          if not pr_number.isdigit(): # pull_requestイベント以外の場合の予備
+              output = subprocess.check_output(['gh', 'pr', 'view', '--json', 'number'], encoding='utf-8')
+              pr_number = str(json.loads(output)['number'])
+
+          subprocess.run(['gh', 'pr', 'comment', pr_number, '--body-file', 'review.md'], check=True)
+          print("Comment posted successfully!")
+          EOF
