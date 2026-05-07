@@ -12,56 +12,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2 # 差分を取るのに最低限必要
 
-      - name: Run Review
+      - name: Run Gemini Review
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }} # ここで番号を確実に渡す
         run: |
-          # Pythonスクリプトを直接実行
+          # 1. 差分を取得
+          git diff origin/${{ github.base_ref }}...HEAD > diff.txt
+
+          # 2. PythonでGeminiに聞き、そのままGitHubにコメントを投げる
           python3 - <<'EOF'
           import os, json, http.client, subprocess
 
-          # 1. 差分を取得
-          try:
-              diff = subprocess.check_output(['git', 'diff', 'origin/main...HEAD']).decode()
-          except:
-              diff = subprocess.check_output(['git', 'diff', 'HEAD~1...HEAD']).decode()
+          api_key = os.environ.get('GEMINI_API_KEY')
+          pr_number = os.environ.get('PR_NUMBER')
+          token = os.environ.get('GITHUB_TOKEN')
+
+          with open('diff.txt', 'r') as f:
+              diff = f.read()
 
           if not diff.strip():
-              print("No diff found.")
+              print("No changes found.")
               exit(0)
 
-          # 2. Gemini APIを叩く
-          api_key = os.environ.get('GEMINI_API_KEY')
-          prompt = """あなたはコードレビューの専門家です。以下の差分を日本語でレビューし、最後に必ず評価に応じた画像を1枚貼ってください。
-          ### 高評価: ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTlxODNqNWR4bnQwZHpkM2VlYmVzNGsyaTQ4eGJ2NWp2eTVkYTFibSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/rrasLFSTyi4Th1e8Xo/giphy.gif)
-          ### 中評価: ![画像](https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2dxdDF1ZnFxbmJ2OXBjbjV0dTlvOXJycWc1M2lhdXFpODBlYWVtMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/crPtfTE2O00qrDgmm7/giphy.gif)
-          ### 低評価: ![画像](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3Vza3FiMjA3eXNxZmdqanV4OGd0M3RkMnB2Y2JsNXhjY3p6bTBqZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/OFKgUAiirX0CPUJ3Jn/giphy.gif)
-          """
-          
+          # プロンプト
+          prompt = "あなたはコードレビュー専門家です。日本語で簡潔にレビューし、最後に必ずGIF画像を1枚貼ってください。\n\n"
+          prompt += "### 高評価: ![OK](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTlxODNqNWR4bnQwZHpkM2VlYmVzNGsyaTQ4eGJ2NWp2eTVkYTFibSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/rrasLFSTyi4Th1e8Xo/giphy.gif)\n"
+          prompt += "### 低評価: ![NG](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3Vza3FiMjA3eXNxZmdqanV4OGd0M3RkMnB2Y2JsNXhjY3p6bTBqZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/OFKgUAiirX0CPUJ3Jn/giphy.gif)"
+
+          # Gemini API 呼び出し
           body = json.dumps({"contents": [{"parts": [{"text": f"{prompt}\n\n{diff}"}]}]})
           conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
           conn.request("POST", f"/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}", body, {"Content-Type": "application/json"})
-          res = conn.getresponse()
-          res_data = json.loads(res.read().decode())
-          
-          if 'candidates' not in res_data:
-              print("API Error:", res_data)
+          res = conn.getresponse().read().decode()
+          data = json.loads(res)
+
+          if 'candidates' in data:
+              review_text = data['candidates'][0]['content']['parts'][0]['text']
+              # GitHub CLIでコメント投稿
+              with open('comment.md', 'w') as f:
+                  f.write(review_text)
+              subprocess.run(['gh', 'pr', 'comment', pr_number, '--body-file', 'comment.md'], check=True)
+              print("Successfully commented!")
+          else:
+              print("Gemini API Error:", res)
               exit(1)
-          
-          review_text = res_data['candidates'][0]['content']['parts'][0]['text']
-
-          # 3. GitHub CLIを使って直接コメント
-          with open('review.md', 'w') as f:
-              f.write(review_text)
-          
-          pr_number = os.environ.get('GITHUB_REF', '').split('/')[-2]
-          if not pr_number.isdigit(): # pull_requestイベント以外の場合の予備
-              output = subprocess.check_output(['gh', 'pr', 'view', '--json', 'number'], encoding='utf-8')
-              pr_number = str(json.loads(output)['number'])
-
-          subprocess.run(['gh', 'pr', 'comment', pr_number, '--body-file', 'review.md'], check=True)
-          print("Comment posted successfully!")
           EOF
