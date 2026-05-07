@@ -17,18 +17,17 @@ jobs:
 
       - name: Run Gemini Review
         env:
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          # ここを登録名（GEMINI_API_KEY）に合わせました！
+          API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # 差分を取得
           git diff origin/${{ github.base_ref }}...HEAD > diff.txt
           
-          # PythonでAPIを叩く
           python3 - <<'EOF'
           import os, json, http.client
 
-          api_key = os.environ.get('GOOGLE_API_KEY')
+          api_key = os.environ.get('API_KEY')
           if not api_key:
-              print("Error: GOOGLE_API_KEY is not set in Secrets")
+              print("Error: GEMINI_API_KEY is not set in Secrets")
               exit(1)
 
           with open('diff.txt', 'r') as f:
@@ -38,7 +37,6 @@ jobs:
               print("No diff found. Skipping review.")
               exit(0)
 
-          # 指示書を埋め込み
           prompt = """
           あなたはコードレビューの専門家です。以下のルールでレビューしてください。
           - 日本語で回答すること
