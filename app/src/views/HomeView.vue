@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { fetchArticles } from "@/api/articles";
-import type { Article } from "@/api/articles";
 
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { fetchArticles } from '@/api/articles';
+import type { Article } from '@/api/articles';
+
+const categories = ["すべて", "プログラミング", "質問", "コラム", "その他"];
 // --- 1. データ管理（API接続） ---
 const posts = ref<Article[]>([]);
 
@@ -23,6 +25,21 @@ const searchQuery = ref("");
 const selectedCategory = ref("すべて");
 const sortOrder = ref<"desc" | "asc">("desc"); // desc: 新着順, asc: 古い順
 const router = useRouter();
+const route = useRoute();
+
+// ----------------------------------------------------
+// 暫定的なロジック：しょうもないURLクエリパラメータ監視ロジック（後で消す）0507
+// URLのクエリパラメータを監視して、searchQueryに反映させるロジック
+// 【追加】URLの ?q=... を監視して、searchQuery に代入する
+watch(
+  () => route.query.q, 
+  (newVal) => {
+    // URLに値があればそれを、なければ空文字をセット
+    searchQuery.value = (newVal as string) || "";
+  }, 
+  { immediate: true } // 画面が開いた瞬間も実行する
+);
+// ----------------------------------------------------
 
 /*  3. 検索・絞り込み・ソートの統合ロジック */
 const filteredAndSortedPosts = computed(() => {
@@ -42,8 +59,8 @@ const filteredAndSortedPosts = computed(() => {
     // created_atが不正な場合は0とみなす
     const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
     const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-    return sortOrder.value === "desc"
-      ? dateB - dateA // 新着順（大きい順）
+    return sortOrder.value === 'desc' 
+      ? dateB - dateA  // 新着順（大きい順）
       : dateA - dateB; // 古い順（小さい順）
   });
 });
@@ -75,6 +92,34 @@ const formatDate = (dateStr: string | undefined) => {
   } else if (diffDay < 7) {
     return `${diffDay}日前`;
   } else {
+    return date.toLocaleDateString('ja-JP'); 
+  }
+};
+
+// 日付をTwitter風の相対時間で表示するフォーマット関数
+const formatDate = (dateStr: string | undefined) => {
+  if (!dateStr) return '';
+  // UTCとして解釈させるため、タイムゾーン表記がない場合は 'Z' を補完する
+  const safeDateStr = dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+  const date = new Date(safeDateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) {
+    // 0秒未満（未来）のズレがあった場合は数秒前とする
+    return diffSec <= 0 ? '数秒前' : `${diffSec}秒前`;
+  } else if (diffMin < 60) {
+    return `${diffMin}分前`;
+  } else if (diffHour < 24) {
+    return `${diffHour}時間前`;
+  } else if (diffDay < 7) {
+    return `${diffDay}日前`;
+  } else {
+    // 1週間以上前なら日付のみ
     return date.toLocaleDateString('ja-JP'); 
   }
 };
@@ -121,20 +166,8 @@ const formatDate = (dateStr: string | undefined) => {
           </h2>
 
           <div class="sort-tabs">
-            <button
-              class="tab"
-              :class="{ active: sortOrder === 'desc' }"
-              @click="sortOrder = 'desc'"
-            >
-              新着順
-            </button>
-            <button
-              class="tab"
-              :class="{ active: sortOrder === 'asc' }"
-              @click="sortOrder = 'asc'"
-            >
-              古い順
-            </button>
+            <button class="tab" :class="{ active: sortOrder === 'desc' }" @click="sortOrder = 'desc'">新着順</button>
+            <button class="tab" :class="{ active: sortOrder === 'asc' }" @click="sortOrder = 'asc'">古い順</button>
           </div>
         </div>
 
