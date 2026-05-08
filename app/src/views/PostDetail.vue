@@ -20,9 +20,10 @@ onMounted(async () => {
   }
 });
 
-const formatDate = (date: string | Date | undefined) => {
-  if (!date) return "";
-  const d = new Date(date);
+const formatDate = (dateStr: string | Date | undefined) => {
+  if (!dateStr) return "";
+  const safeDateStr = typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+') ? dateStr + 'Z' : dateStr;
+  const d = new Date(safeDateStr);
   return d.toLocaleString('ja-JP', {
     year: 'numeric',
     month: 'numeric',

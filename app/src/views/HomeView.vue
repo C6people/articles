@@ -59,7 +59,9 @@ const goToDetail = (id: string) => {
 // 日付をTwitter風の相対時間で表示するフォーマット関数
 const formatDate = (dateStr: string | undefined) => {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
+  // UTCとして解釈させるため、タイムゾーン表記がない場合は 'Z' を補完する
+  const safeDateStr = dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+  const date = new Date(safeDateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);
