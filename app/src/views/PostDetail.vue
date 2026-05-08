@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import CommonHeader from '@/components/CommonHeader.vue';
 import { fetchArticleById, type Article } from '@/api/articles';
 
 const route = useRoute();
@@ -42,22 +43,7 @@ const goToPost = () => {
 </script>
 
 <template>
-  <header class="main-header">
-    <div class="header-inner">
-      <h1 class="logo" @click="backToHome">
-        プログラミング情報共有サイト
-      </h1>
-      <div class="search-bar">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="キーワードから知恵を探す..."
-        />
-        <button class="search-button">🔍 検索</button>
-      </div>
-      <button class="post-button" @click="goToPost">＋ 質問する</button>
-    </div>
-  </header>
+  <CommonHeader />
 
   <div class="page">
     <div v-if="loading">読み込み中...</div>
@@ -232,63 +218,5 @@ const goToPost = () => {
 }
 
 /* ヘッダー装飾（既存そのまま） */
-.main-header {
-  width: 100%;
-  background-color: #fff;
-  border-bottom: 1px solid #ddd;
-  padding: 15px 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
 
-.header-inner {
-  width: 100%;
-  padding: 0 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-
-.logo {
-  font-size: 24px;
-  color: #007bff;
-  margin: 0;
-  cursor: pointer;
-}
-
-.search-bar {
-  flex: 1;
-  max-width: 600px;
-  margin: 0 30px;
-  display: flex;
-  border: 2px solid #007bff;
-  border-radius: 4px;
-}
-
-.search-bar input {
-  flex: 1;
-  border: none;
-  padding: 10px;
-  outline: none;
-}
-
-.search-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0 20px;
-  cursor: pointer;
-}
-
-.post-button {
-  background-color: #ff5a5f;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-}
 </style>

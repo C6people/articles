@@ -2,6 +2,7 @@
 
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import CommonHeader from '@/components/CommonHeader.vue';
 import { fetchArticles } from '@/api/articles';
 import type { Article } from '@/api/articles';
 
@@ -100,20 +101,7 @@ const formatDate = (dateStr: string | undefined) => {
 
 <template>
   <div class="full-screen-container">
-    <header class="main-header">
-      <div class="header-inner">
-        <h1 class="logo">プログラミング情報共有サイト</h1>
-        <div class="search-bar">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="キーワードから記事を探す..."
-          />
-          <button class="search-button">🔍 検索</button>
-        </div>
-        <button class="post-button" @click="goToPost">＋ 新規作成</button>
-      </div>
-    </header>
+    <CommonHeader />
 
     <div class="content-wrapper">
       <aside class="sidebar">
@@ -186,64 +174,6 @@ const formatDate = (dateStr: string | undefined) => {
   padding: 0;
 }
 
-.main-header {
-  width: 100%;
-  background-color: #fff;
-  border-bottom: 1px solid #ddd;
-  padding: 15px 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-inner {
-  width: 100%;
-  padding: 0 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-
-.logo {
-  font-size: 24px;
-  color: #007bff;
-  margin: 0;
-}
-
-.search-bar {
-  flex: 1;
-  max-width: 600px;
-  margin: 0 30px;
-  display: flex;
-  border: 2px solid #007bff;
-  border-radius: 4px;
-}
-
-.search-bar input {
-  flex: 1;
-  border: none;
-  padding: 10px;
-  outline: none;
-}
-
-.search-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0 20px;
-  cursor: pointer;
-}
-
-.post-button {
-  background-color: #ff5a5f;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-}
 
 /* 2カラムレイアウト設定 */
 .content-wrapper {
