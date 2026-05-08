@@ -17,6 +17,11 @@ const routes = [
     component: PostFormView
   },
   {
+    path: '/post/:id',
+    name: 'PostDetail',
+    component: PostDetail
+  },
+  {
     path: '/login',
     name: 'Login',
     component: LoginView
