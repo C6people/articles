@@ -68,10 +68,8 @@ const goToPost = () => {
   router.push("/post");
 };
 const goToDetail = (id: string) => {
-  router.push({ name: 'PostDetail', params: { id } });
+  router.push({ name: "PostDetail", params: { id } });
 };
-
-// 日付をTwitter風の相対時間で表示するフォーマット関数
 const formatDate = (dateStr: string | undefined) => {
   if (!dateStr) return '';
   // UTCとして解釈させるため、タイムゾーン表記がない場合は 'Z' を補完する
@@ -102,15 +100,14 @@ const formatDate = (dateStr: string | undefined) => {
 
 <template>
   <div class="full-screen-container">
-    
     <header class="main-header">
       <div class="header-inner">
         <h1 class="logo">プログラミング情報共有サイト</h1>
         <div class="search-bar">
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="キーワードから記事を探す..." 
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="キーワードから記事を探す..."
           />
           <button class="search-button">🔍 検索</button>
         </div>
@@ -148,9 +145,9 @@ const formatDate = (dateStr: string | undefined) => {
         </div>
 
         <div class="post-list">
-          <article 
-            v-for="post in filteredAndSortedPosts" 
-            :key="post.id" 
+          <article
+            v-for="post in filteredAndSortedPosts"
+            :key="post.id"
             class="post-card"
             @click="goToDetail(post.id)"
           >
@@ -174,7 +171,6 @@ const formatDate = (dateStr: string | undefined) => {
           </div>
         </div>
       </main>
-
     </div>
   </div>
 </template>

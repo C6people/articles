@@ -13,8 +13,8 @@ class Article(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     body = Column(Text, nullable=False)
+    category = Column(String, nullable=False, default="その他")  # カテゴリを追加
     created_at = Column(DateTime, nullable=False, server_default=func.now())
-
 
 class ArticleComment(Base):
     __tablename__ = "article_comments"
