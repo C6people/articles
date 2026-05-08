@@ -12,12 +12,18 @@ const handlePostClick = () => {
 // 検索入力用の関数を追加（eventが暗黙的にanyみたいなエラーを消すためのもの）0507
 // event の型を明示的に指定
 const handleSearch = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    const keyword = target.value;
-    console.log('入力されました:', target.value);
-    if (!keyword) return; // 空っぽなら何もしない
-    // URLを /?q=キーワード に書き換えて移動する
-    router.push({ path: '/', query: { q: target.value } });
+    // フォーム送信等のデフォルト動作を抑止
+    event.preventDefault?.();
+    const target = event.target as HTMLInputElement | null;
+    const keyword = (target?.value || '').trim();
+    console.log('入力されました:', keyword);
+    // 空文字でもホームへ移動（検索をリセット）
+    if (!keyword) {
+        router.push({ name: 'Home' });
+        return;
+    }
+    // Home に名前ベースで遷移し、クエリを渡す（/?q=...）
+    router.push({ name: 'Home', query: { q: keyword } });
 };
 // -------------------------------------------------------
 
@@ -53,7 +59,7 @@ const handleLogout = () => {
                         <input 
                             type="text" 
                             placeholder="キーワードから知恵を探す"
-                            @keydown.enter="handleSearch"
+                            @keyup.enter="handleSearch"
                         >
                     </div>
                     <button class="post-button" @click="handlePostClick">+ 投稿する</button>

@@ -4,6 +4,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { fetchArticles } from '@/api/articles';
 import type { Article } from '@/api/articles';
+import CommonHeader from '@/components/CommonHeader.vue';
 
 const categories = ["すべて", "プログラミング", "質問", "コラム", "その他"];
 // --- 1. データ管理（API接続） ---
@@ -30,11 +31,12 @@ const route = useRoute();
 // URLのクエリパラメータを監視して、searchQueryに反映させるロジック
 // 【追加】URLの ?q=... を監視して、searchQuery に代入する
 watch(
-  () => route.query.q, 
+  () => route.query.q,
   (newVal) => {
-    // URLに値があればそれを、なければ空文字をセット
-    searchQuery.value = (newVal as string) || "";
-  }, 
+    // query は string | string[] | undefined の可能性がある
+    const q = Array.isArray(newVal) ? newVal[0] : newVal;
+    searchQuery.value = (q as string) || "";
+  },
   { immediate: true } // 画面が開いた瞬間も実行する
 );
 // ----------------------------------------------------
@@ -46,9 +48,11 @@ const filteredAndSortedPosts = computed(() => {
     const isCategoryMatch =
       selectedCategory.value === "すべて" ||
       post.category === selectedCategory.value;
-    const isSearchMatch =
-      post.title.includes(searchQuery.value) ||
-      post.content.includes(searchQuery.value);
+    // 検索語や記事のフィールドが undefined でも安全に扱えるようにする
+    const q = (searchQuery.value || "").toString().toLowerCase();
+    const title = (post.title || "").toString().toLowerCase();
+    const bodyOrContent = (post.content ?? post.body ?? "").toString().toLowerCase();
+    const isSearchMatch = title.includes(q) || bodyOrContent.includes(q);
     return isCategoryMatch && isSearchMatch;
   });
 
@@ -103,20 +107,7 @@ const formatDate = (dateStr: string | undefined) => {
 <template>
   <div class="full-screen-container">
     
-    <header class="main-header">
-      <div class="header-inner">
-        <h1 class="logo">プログラミング情報共有サイト</h1>
-        <div class="search-bar">
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="キーワードから記事を探す..." 
-          />
-          <button class="search-button">🔍 検索</button>
-        </div>
-        <button class="post-button" @click="goToPost">＋ 新規作成</button>
-      </div>
-    </header>
+    <CommonHeader />
 
     <div class="content-wrapper">
       <aside class="sidebar">
