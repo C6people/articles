@@ -1,10 +1,8 @@
 <script setup lang="ts">
-
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { fetchArticles } from '@/api/articles';
-import type { Article } from '@/api/articles';
-
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { fetchArticles } from "@/api/articles";
+import type { Article } from "@/api/articles";
 
 // --- 1. データ管理（API接続） ---
 const posts = ref<Article[]>([]);
@@ -17,6 +15,8 @@ onMounted(async () => {
     // 必要に応じてエラーメッセージ表示も可
   }
 });
+/* カテゴリーの選択肢 */
+const categories = ["すべて", "質問", "制作物", "コラム", "その他"];
 
 /* 2. 状態管理（検索・カテゴリー・ソート） */
 const searchQuery = ref("");
@@ -42,8 +42,8 @@ const filteredAndSortedPosts = computed(() => {
     // createdAtが不正な場合は0とみなす
     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    return sortOrder.value === 'desc' 
-      ? dateB - dateA  // 新着順（大きい順）
+    return sortOrder.value === "desc"
+      ? dateB - dateA // 新着順（大きい順）
       : dateA - dateB; // 古い順（小さい順）
   });
 });
@@ -53,21 +53,20 @@ const goToPost = () => {
   router.push("/post");
 };
 const goToDetail = (id: string) => {
-  router.push({ name: 'PostDetail', params: { id } });
+  router.push({ name: "PostDetail", params: { id } });
 };
 </script>
 
 <template>
   <div class="full-screen-container">
-    
     <header class="main-header">
       <div class="header-inner">
         <h1 class="logo">プログラミング情報共有サイト</h1>
         <div class="search-bar">
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="キーワードから記事を探す..." 
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="キーワードから記事を探す..."
           />
           <button class="search-button">🔍 検索</button>
         </div>
@@ -99,15 +98,27 @@ const goToDetail = (id: string) => {
           </h2>
 
           <div class="sort-tabs">
-            <button class="tab" :class="{ active: sortOrder.value === 'desc' }" @click="sortOrder.value = 'desc'">新着順</button>
-            <button class="tab" :class="{ active: sortOrder.value === 'asc' }" @click="sortOrder.value = 'asc'">古い順</button>
+            <button
+              class="tab"
+              :class="{ active: sortOrder.value === 'desc' }"
+              @click="sortOrder.value = 'desc'"
+            >
+              新着順
+            </button>
+            <button
+              class="tab"
+              :class="{ active: sortOrder.value === 'asc' }"
+              @click="sortOrder.value = 'asc'"
+            >
+              古い順
+            </button>
           </div>
         </div>
 
         <div class="post-list">
-          <article 
-            v-for="post in filteredAndSortedPosts" 
-            :key="post.id" 
+          <article
+            v-for="post in filteredAndSortedPosts"
+            :key="post.id"
             class="post-card"
             @click="goToDetail(post.id)"
           >
@@ -131,7 +142,6 @@ const goToDetail = (id: string) => {
           </div>
         </div>
       </main>
-
     </div>
   </div>
 </template>

@@ -14,7 +14,7 @@ class Article(Base):
     title = Column(String, nullable=False)
     body = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
-
+    category = Column(String, nullable=False, default="その他")  # カテゴリを追加
 
 class ArticleComment(Base):
     __tablename__ = "article_comments"

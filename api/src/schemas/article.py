@@ -5,6 +5,7 @@ from uuid import UUID
 class ArticleCreate(BaseModel):
     title: str
     body: str
+    category: str
 
 class ArticleResponse(BaseModel):
     id: UUID
@@ -12,6 +13,7 @@ class ArticleResponse(BaseModel):
     title: str
     body: str
     created_at: datetime
+    category: str
 
     class Config:
         from_attributes = True

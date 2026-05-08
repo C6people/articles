@@ -11,8 +11,10 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "alembic": "^0.0.3",
     "axios": "^1.15.2",
     "lucide-react": "^1.8.0",
+    "value": "^0.3.3",
     "vue": "^3.5.32",
     "vue-router": "^4.6.4"
   },
