@@ -24,13 +24,12 @@ const formatDate = (dateStr: string | Date | undefined) => {
   if (!dateStr) return "";
   const safeDateStr = typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+') ? dateStr + 'Z' : dateStr;
   const d = new Date(safeDateStr);
-  return d.toLocaleString('ja-JP', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric'
-  }); // YYYY/MM/DD HH:mm
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
 };
 
 const backToHome = () => {
@@ -63,61 +62,85 @@ const goToPost = () => {
   <div class="page">
     <div v-if="loading">読み込み中...</div>
 
-    <div v-else-if="article" class="container">
-      <!-- 戻るボタン（左上・横長） -->
-      <button class="back-button" @click="backToHome">
-        ← 記事一覧へ戻る
-      </button>
+    <div v-else-if="article" class="content-wrapper">
+      <!-- 左カラム：メイン記事と戻るボタン -->
+      <div class="left-column">
+        <button class="back-button" @click="backToHome">
+          記事一覧へ戻る
+        </button>
 
-      <!-- メイン -->
-      <div class="main">
-        <h1 class="title">{{ article.title }}</h1>
+        <div class="main-card">
+          <h1 class="title">{{ article.title }}</h1>
+          <div class="author-name">{{ article.user_id }}</div>
+          <div class="category-badge">プログラミング</div>
+          <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
 
-        <div class="meta">
-          <span class="author">{{ article.user_id }}</span>
-          <span class="genre">プログラミング</span>
-          <span class="date">{{ formatDate(article.created_at) }}</span>
-        </div>
-
-        <div class="body">
-          {{ article.body }}
+          <div class="body-content">
+            {{ article.body }}
+          </div>
         </div>
       </div>
+
+      <!-- 右カラム：サイドバー -->
+      <aside class="sidebar">
+        <h2 class="sidebar-title">おすすめ記事一覧</h2>
+        <ul class="recommended-list">
+          <li>FastAPIでのDB接続エラー解決策</li>
+          <li>ポートフォリオのデザイン案</li>
+        </ul>
+      </aside>
     </div>
 
-    <div v-else class="container">
-      <button class="back-button" @click="backToHome">
-        ← 記事一覧へ戻る
-      </button>
-      <div class="main">
-        <p>記事が見つかりませんでした。</p>
+    <div v-else class="content-wrapper">
+      <div class="left-column">
+        <button class="back-button" @click="backToHome">
+          記事一覧へ戻る
+        </button>
+        <div class="main-card">
+          <p>記事が見つかりませんでした。</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* 全体の背景と配置 */
 .page {
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  padding: 40px;
   display: flex;
   justify-content: center;
-  padding: 40px;
-  background: #f5f5f5;
 }
 
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
+/* 2カラムレイアウト */
+.content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  width: 100%;
+  max-width: 1100px;
 }
 
+/* 左カラム */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* 戻るボタン */
 .back-button {
   display: inline-block;
-  padding: 10px 24px;
+  padding: 8px 24px;
   margin-bottom: 20px;
-  background: white;
-  border: 2px solid #2693B4;
+  background: transparent;
+  border: 1px solid #2693B4;
   color: #2693B4;
   border-radius: 999px;
   font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
 }
@@ -127,51 +150,88 @@ const goToPost = () => {
   color: white;
 }
 
-.main {
+/* 記事カード */
+.main-card {
+  width: 100%;
   background: white;
-  padding: 30px;
+  padding: 60px 50px;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .title {
-  font-size: 24px;
-  margin-bottom: 16px;
-}
-
-.meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  color: #666;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
-
-.meta span::before {
+  font-size: 28px;
   font-weight: bold;
   color: #333;
-  margin-right: 6px;
+  margin: 0 0 15px 0;
+  line-height: 1.4;
 }
 
-.author::before {
-  content: "投稿者ID:";
+.author-name {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 15px;
 }
 
-.genre::before {
-  content: "ジャンル:";
+.category-badge {
+  display: inline-block;
+  background-color: #2693B4;
+  color: white;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 25px;
 }
 
-.date::before {
-  content: "投稿日:";
+.post-date {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 50px;
 }
 
-.body {
+.body-content {
   white-space: pre-wrap;
-  line-height: 1.7;
+  line-height: 2.0;
+  color: #444;
+  font-size: 16px;
 }
 
-/* ヘッダー装飾 */
+/* サイドバー */
+.sidebar {
+  padding-top: 60px; /* 記事カードの上部と大体合わせる */
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #999;
+  margin: 0 0 10px 0;
+}
+
+.recommended-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recommended-list li {
+  padding: 20px 0;
+  border-bottom: 1px solid #ccc;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.recommended-list li:hover {
+  color: #2693B4;
+}
+
+/* ヘッダー装飾（既存そのまま） */
 .main-header {
   width: 100%;
   background-color: #fff;
