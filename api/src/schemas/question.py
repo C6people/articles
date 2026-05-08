@@ -5,8 +5,6 @@ from uuid import UUID
 class QuestionCreate(BaseModel):
     title: str
     body: str
-    # TODO: ログイン機能実装後は削除し、トークンから取得するように変更する
-    user_id: UUID
 
 class QuestionResponse(BaseModel):
     id: UUID

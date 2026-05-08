@@ -16,11 +16,11 @@ async def get_article(db: AsyncSession, article_id: UUID) -> Article | None:
     result = await db.execute(select(Article).where(Article.id == article_id))
     return result.scalar_one_or_none()
 
-async def create_article(db: AsyncSession, article_in: article_schema.ArticleCreate) -> Article:
+async def create_article(db: AsyncSession, article_in: article_schema.ArticleCreate, user_id: UUID) -> Article:
     new_article = Article(
         title=article_in.title,
         body=article_in.body,
-        user_id=article_in.user_id
+        user_id=user_id
     )
     db.add(new_article)
     await db.commit()

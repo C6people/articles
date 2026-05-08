@@ -16,11 +16,11 @@ async def get_question(db: AsyncSession, question_id: UUID) -> Question | None:
     result = await db.execute(select(Question).where(Question.id == question_id))
     return result.scalar_one_or_none()
 
-async def create_question(db: AsyncSession, question_in: question_schema.QuestionCreate) -> Question:
+async def create_question(db: AsyncSession, question_in: question_schema.QuestionCreate, user_id: UUID) -> Question:
     new_question = Question(
         title=question_in.title,
         body=question_in.body,
-        user_id=question_in.user_id
+        user_id=user_id
     )
     db.add(new_question)
     await db.commit()

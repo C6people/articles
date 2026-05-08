@@ -16,43 +16,42 @@ import { useRouter } from 'vue-router'
 /**
  * ログインボタンを押した時の処理
  */
-    const handleLogin = async () => {
-  // 以前のエラー状態をリセット
-    isError.value = false
-    errorMessage.value = ''
+const handleLogin = async () => {
+  isError.value = false
+  errorMessage.value = ''
 
-  // --- ⬇️ 将来のDB連携（Node.js / Python）用コード ⬇️ ---
-/*
-    const url = "http://localhost:8000/login"; 
-    try {
-    const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userid: userid.value, password: password.value })
-    });
-    const result = await response.json();
-    if (result.success) {
-      // 成功：トップ画面へ（Vue Router等を使用）
-        return;
-    }
-    } catch (err) {
-        console.error("通信エラー:", err);
-    }
-  */
+  try {
+    const response = await fetch("http://localhost:8000/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: userid.value,   
+        password: password.value
+      })
+    })
 
-  // --- ⬇️ 現時点のダミー判定 ⬇️ ---
-    const dummyID = "1234567"
-    const dummyPass = "password123"
-
-    if (userid.value !== dummyID || password.value !== dummyPass) {
-        // 失敗
-        isError.value = true
-        errorMessage.value = "ユーザーIDかパスワードが正しくありません"
-    } else {
-    // 成功
-        alert("ログインに成功しました。ホームへ移動します。")
-        router.replace('/')
+    // ステータスチェック
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("ユーザーIDかパスワードが違います")
+      }
+      throw new Error("サーバーエラー")
     }
+
+    const data = await response.json()
+
+    // トークン保存
+    localStorage.setItem("token", data.token)
+
+    alert("ログイン成功")
+    router.replace("/")
+
+  } catch (err: any) {
+    isError.value = true
+    errorMessage.value = err.message
+  }
 }
 
 /**
@@ -83,7 +82,7 @@ const togglePasswordVisibility = () => {
                     v-model="userid" 
                     :class="{ 'input-error': isError }"
                     required 
-                    placeholder="7桁学籍番号"
+                    placeholder="7桁学籍番号（半角）"
                 >
                 <div class="error-message">{{ errorMessage }}</div>
             </div>
@@ -97,7 +96,7 @@ const togglePasswordVisibility = () => {
                     v-model="password" 
                     :class="{ 'input-error': isError }"
                     required 
-                    placeholder="8文字以上の英数字"
+                    placeholder="8文字以上の英数字（半角）"
                     >
                     <span 
                         class="material-symbols-outlined" 
