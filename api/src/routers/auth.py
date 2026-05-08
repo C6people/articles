@@ -26,7 +26,6 @@ async def login(
 
     # 4. JWTトークンの生成
     # トークンの中身(Payload)にユーザー名とIDを入れます。
-    # 💡注意: user.idはUUID型なので、必ず str() で文字列に変換してから入れます！
     access_token = create_access_token(
         data={"sub": user.name, "user_id": str(user.id)}
     )

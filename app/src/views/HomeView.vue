@@ -1,73 +1,22 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
-import CommonHeader from "@/components/CommonHeader.vue";
-// --------------------------
-// ↓暫定検索ロジックのためのしょうもないインポート（後で消す）0507
-import { watch } from 'vue'; 
-import { useRoute } from 'vue-router';
-const route = useRoute();
-// ----------------------------------
 
-// --- 1. データ管理（ダミーデータ：後にAPI接続） ---
-const posts = ref([
-  {
-    id: 1,
-    title: "ReactとVue.jsの違いについて",
-    content:
-      "サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。",
-    author: "Mahiro",
-    category: "質問",
-    likes: 15,
-    comments: 4,
-    createdAt: "2026-04-22 18:00",
-  },
-  {
-    id: 2,
-    title: "FastAPIでのDB接続エラー解決策",
-    content:
-      "PostgreSQLとの連携でバリデーションエラーが出た際の対処法です。Pydanticモデルの定義を見直しましょう。",
-    author: "サーバー担当A",
-    category: "コラム",
-    likes: 10,
-    comments: 2,
-    createdAt: "2026-04-23 10:00",
-  },
-  {
-    id: 3,
-    title: "ポートフォリオのデザイン案",
-    content:
-      "見やすいWebサイトを作るための配色の基本をまとめました。余白の使い方が重要です。",
-    author: "佐藤",
-    category: "コラム",
-    likes: 20,
-    comments: 5,
-    createdAt: "2026-05-06 8:32",
-  },
-  {
-    id: 4,
-    title: "2年次に制作したWebアプリの紹介",
-    content: "2年次に制作したWebアプリの概要と技術スタックについて説明します。",
-    author: "kouki",
-    category: "制作物",
-    likes: 6,
-    comments: 3,
-    createdAt: "2026-05-07 9:30",
-  },
-  {
-    id: 5,
-    title: "自己PRの書き方について",
-    content:
-      "自己PRを書く際のポイントや注意点をまとめました。あくまで個人の考えです。",
-    author: "hira",
-    category: "その他",
-    likes: 12,
-    comments: 6,
-    createdAt: "2026-05-06 10:05",
-  },
-]);
-/* カテゴリーの選択肢 */
-const categories = ["すべて", "質問", "制作物", "コラム", "その他"];
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { fetchArticles } from '@/api/articles';
+import type { Article } from '@/api/articles';
+
+
+// --- 1. データ管理（API接続） ---
+const posts = ref<Article[]>([]);
+
+onMounted(async () => {
+  try {
+    posts.value = await fetchArticles();
+  } catch (e) {
+    // エラー時は空配列のまま
+    // 必要に応じてエラーメッセージ表示も可
+  }
+});
 
 /* 2. 状態管理（検索・カテゴリー・ソート） */
 const searchQuery = ref("");
@@ -104,23 +53,41 @@ const filteredAndSortedPosts = computed(() => {
 
   /* ② 次に日付で並び替える（元のデータを壊さないようコピーしてから実行） */
   return [...result].sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime();
-    const dateB = new Date(b.createdAt).getTime();
-
-    return sortOrder.value === "desc"
-      ? dateB - dateA // 新着順（大きい順）
+    // createdAtが不正な場合は0とみなす
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return sortOrder.value === 'desc' 
+      ? dateB - dateA  // 新着順（大きい順）
       : dateA - dateB; // 古い順（小さい順）
   });
 });
 
+// 記事詳細画面へ遷移
 const goToPost = () => {
   router.push("/post");
+};
+const goToDetail = (id: string) => {
+  router.push({ name: 'PostDetail', params: { id } });
 };
 </script>
 
 <template>
   <div class="full-screen-container">
-    <CommonHeader />
+    
+    <header class="main-header">
+      <div class="header-inner">
+        <h1 class="logo">プログラミング情報共有サイト</h1>
+        <div class="search-bar">
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="キーワードから記事を探す..." 
+          />
+          <button class="search-button">🔍 検索</button>
+        </div>
+        <button class="post-button" @click="goToPost">＋ 新規作成</button>
+      </div>
+    </header>
 
     <div class="content-wrapper">
       <aside class="sidebar">
@@ -146,51 +113,39 @@ const goToPost = () => {
           </h2>
 
           <div class="sort-tabs">
-            <button
-              class="tab"
-              :class="{ active: sortOrder === 'desc' }"
-              @click="sortOrder = 'desc'"
-            >
-              新着順
-            </button>
-            <button
-              class="tab"
-              :class="{ active: sortOrder === 'asc' }"
-              @click="sortOrder = 'asc'"
-            >
-              古い順
-            </button>
+            <button class="tab" :class="{ active: sortOrder.value === 'desc' }" @click="sortOrder.value = 'desc'">新着順</button>
+            <button class="tab" :class="{ active: sortOrder.value === 'asc' }" @click="sortOrder.value = 'asc'">古い順</button>
           </div>
         </div>
 
         <div class="post-list">
-          <article
-            v-for="post in filteredAndSortedPosts"
-            :key="post.id"
+          <article 
+            v-for="post in filteredAndSortedPosts" 
+            :key="post.id" 
             class="post-card"
+            @click="goToDetail(post.id)"
           >
             <div class="post-header">
               <span class="category-badge">{{ post.category }}</span>
               <span class="post-date">{{ post.createdAt }}</span>
             </div>
-
             <h3 class="post-title">{{ post.title }}</h3>
             <p class="post-summary">{{ post.content }}</p>
-
             <div class="post-footer">
-              <span class="author-name">👤 {{ post.author }}</span>
+              <span class="author-name">👤 ID: {{ post.user_id }}</span>
               <div class="post-stats">
-                <span class="stat">💬 {{ post.comments }}</span>
-                <span class="stat">👍 {{ post.likes }}</span>
+                <span class="stat">💬 コメント {{ post.comments }}</span>
+                <span class="stat">👍 高評価 {{ post.likes }}</span>
               </div>
             </div>
           </article>
 
           <div v-if="filteredAndSortedPosts.length === 0" class="no-results">
-            「{{ searchQuery }}」に一致する質問は見つかりませんでした。
+            「{{ searchQuery }}」に一致する記事は見つかりませんでした。
           </div>
         </div>
       </main>
+
     </div>
   </div>
 </template>

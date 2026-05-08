@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -231,3 +232,33 @@ const goToPost = () => {
   cursor: pointer;
 }
 </style>
+=======
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { fetchArticleById, type Article } from '@/api/articles';
+
+const route = useRoute();
+const article = ref<Article | null>(null);
+
+onMounted(async () => {
+  const id = route.params.id as string;
+  try {
+    // 全件ではなく、このIDの記事だけをDBから呼ぶ
+    article.value = await fetchArticleById(id);
+  } catch (e) {
+    console.error("記事が見つかりませんでした");
+  }
+});
+</script>
+
+<template>
+  <div v-if="article">
+    <h1>{{ article.title }}</h1>
+    <p>投稿者ID: {{ article.user_id }}</p>
+    <hr>
+    <div>{{ article.body }}</div>
+  </div>
+</template>
+
+>>>>>>> 32adcf2 (記事カードからDB取得、画面遷移)
