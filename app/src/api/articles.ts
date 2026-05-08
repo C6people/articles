@@ -4,6 +4,7 @@ import api from './client';
 export type Article = {
   id: string;
   user_id: string;
+  user_name: string | null;
   title: string;
   body: string;
   content: string;

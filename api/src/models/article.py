@@ -2,6 +2,7 @@
 
 import uuid
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey, UUID
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from src.database import Base
 
@@ -15,6 +16,12 @@ class Article(Base):
     body = Column(Text, nullable=False)
     category = Column(String, nullable=False, default="その他")  # カテゴリを追加
     created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    user = relationship("User")
+
+    @property
+    def user_name(self):
+        return self.user.name if self.user else None
 
 class ArticleComment(Base):
     __tablename__ = "article_comments"

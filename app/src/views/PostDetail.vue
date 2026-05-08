@@ -57,8 +57,8 @@ const goToPost = () => {
 
         <div class="main-card">
           <h1 class="title">{{ article.title }}</h1>
-          <div class="author-name">{{ article.user_id }}</div>
-          <div class="category-badge">プログラミング</div>
+          <div class="author-name">👤 {{ article.user_name || '不明' }}</div>
+          <div class="category-badge">{{ article.category }}</div>
           <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
 
           <div class="body-content">
