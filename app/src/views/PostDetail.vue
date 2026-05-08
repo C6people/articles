@@ -1,45 +1,35 @@
-<<<<<<< HEAD
-<script setup>
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { fetchArticleById, type Article } from '@/api/articles';
 
 const route = useRoute();
-const article = ref(null);
-const loading = ref(true);
 const router = useRouter();
+const article = ref<Article | null>(null);
+const loading = ref(true);
 const searchQuery = ref("");
 
-onMounted(() => {
-  // ダミーデータ
-  const id = String(route.params.id)
-
-  article.value = {
-    id: id,
-    title: "ReactとVue.jsの違いについて",
-    body: `サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。
-    
-1. はじめに
-
-普段はNode.jsやPythonでAPIを叩いているサーバーサイド寄りですが、フロントエンドの基礎を固めるために、モダンな2大フレームワークである「React」と「Vue.js」を比較してみました。
-
-2. Vue.js：直感的でHTMLの延長に近い
-Vueは構文がシンプルで、学習コストが低いです。
-
-3. React：すべてがJavaScriptの世界
-ReactはJS中心で設計されており、柔軟性が高いです。
-
-4. まとめ
-用途によって使い分けるのがベストだと感じました。`,
-    createdAt: "2026-04-22T18:00:00",
-    category: "プログラミング",
-    author: "Mahiro"
-  };
-
-  loading.value = false;
+onMounted(async () => {
+  const id = route.params.id as string;
+  try {
+    article.value = await fetchArticleById(id);
+  } catch (e) {
+    console.error("記事が見つかりませんでした");
+  } finally {
+    loading.value = false;
+  }
 });
 
-const formatDate = (date) => {
-  return new Date(date).toLocaleString();
+const formatDate = (date: string | Date | undefined) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric'
+  }); // YYYY/MM/DD HH:mm
 };
 
 const backToHome = () => {
@@ -52,22 +42,22 @@ const goToPost = () => {
 </script>
 
 <template>
-    <header class="main-header">
-      <div class="header-inner">
-        <h1 class="logo" @click="backToHome">
-                プログラミング情報共有サイト
-        </h1>
-        <div class="search-bar">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="キーワードから知恵を探す..."
-          />
-          <button class="search-button">🔍 検索</button>
-        </div>
-        <button class="post-button" @click="goToPost">＋ 質問する</button>
+  <header class="main-header">
+    <div class="header-inner">
+      <h1 class="logo" @click="backToHome">
+        プログラミング情報共有サイト
+      </h1>
+      <div class="search-bar">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="キーワードから知恵を探す..."
+        />
+        <button class="search-button">🔍 検索</button>
       </div>
-    </header>
+      <button class="post-button" @click="goToPost">＋ 質問する</button>
+    </div>
+  </header>
 
   <div class="page">
     <div v-if="loading">読み込み中...</div>
@@ -83,14 +73,23 @@ const goToPost = () => {
         <h1 class="title">{{ article.title }}</h1>
 
         <div class="meta">
-            <span class="author">{{ article.author }}</span>
-            <span class="genre">{{ article.category }}</span>
-            <span class="date">{{ formatDate(article.createdAt) }}</span>
+          <span class="author">{{ article.user_id }}</span>
+          <span class="genre">プログラミング</span>
+          <span class="date">{{ formatDate(article.created_at) }}</span>
         </div>
 
         <div class="body">
-            {{ article.body }}
+          {{ article.body }}
         </div>
+      </div>
+    </div>
+
+    <div v-else class="container">
+      <button class="back-button" @click="backToHome">
+        ← 記事一覧へ戻る
+      </button>
+      <div class="main">
+        <p>記事が見つかりませんでした。</p>
       </div>
     </div>
   </div>
@@ -155,7 +154,7 @@ const goToPost = () => {
 }
 
 .author::before {
-  content: "投稿者:";
+  content: "投稿者ID:";
 }
 
 .genre::before {
@@ -232,33 +231,3 @@ const goToPost = () => {
   cursor: pointer;
 }
 </style>
-=======
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { fetchArticleById, type Article } from '@/api/articles';
-
-const route = useRoute();
-const article = ref<Article | null>(null);
-
-onMounted(async () => {
-  const id = route.params.id as string;
-  try {
-    // 全件ではなく、このIDの記事だけをDBから呼ぶ
-    article.value = await fetchArticleById(id);
-  } catch (e) {
-    console.error("記事が見つかりませんでした");
-  }
-});
-</script>
-
-<template>
-  <div v-if="article">
-    <h1>{{ article.title }}</h1>
-    <p>投稿者ID: {{ article.user_id }}</p>
-    <hr>
-    <div>{{ article.body }}</div>
-  </div>
-</template>
-
->>>>>>> 32adcf2 (記事カードからDB取得、画面遷移)
