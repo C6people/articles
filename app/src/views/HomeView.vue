@@ -9,6 +9,63 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 // ----------------------------------
 
+// --- 1. データ管理（ダミーデータ：後にAPI接続） ---
+const posts = ref([
+  {
+    id: 1,
+    title: "ReactとVue.jsの違いについて",
+    content:
+      "サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。",
+    author: "Mahiro",
+    category: "質問",
+    likes: 15,
+    comments: 4,
+    createdAt: "2026-04-22 18:00",
+  },
+  {
+    id: 2,
+    title: "FastAPIでのDB接続エラー解決策",
+    content:
+      "PostgreSQLとの連携でバリデーションエラーが出た際の対処法です。Pydanticモデルの定義を見直しましょう。",
+    author: "サーバー担当A",
+    category: "コラム",
+    likes: 10,
+    comments: 2,
+    createdAt: "2026-04-23 10:00",
+  },
+  {
+    id: 3,
+    title: "ポートフォリオのデザイン案",
+    content:
+      "見やすいWebサイトを作るための配色の基本をまとめました。余白の使い方が重要です。",
+    author: "佐藤",
+    category: "コラム",
+    likes: 20,
+    comments: 5,
+    createdAt: "2026-05-06 8:32",
+  },
+  {
+    id: 4,
+    title: "2年次に制作したWebアプリの紹介",
+    content: "2年次に制作したWebアプリの概要と技術スタックについて説明します。",
+    author: "kouki",
+    category: "制作物",
+    likes: 6,
+    comments: 3,
+    createdAt: "2026-05-07 9:30",
+  },
+  {
+    id: 5,
+    title: "自己PRの書き方について",
+    content:
+      "自己PRを書く際のポイントや注意点をまとめました。あくまで個人の考えです。",
+    author: "hira",
+    category: "その他",
+    likes: 12,
+    comments: 6,
+    createdAt: "2026-05-06 10:05",
+  },
+]);
 /* カテゴリーの選択肢 */
 const categories = ["すべて", "質問", "制作物", "コラム", "その他"];
 
