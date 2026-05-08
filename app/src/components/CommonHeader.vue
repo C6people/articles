@@ -24,11 +24,12 @@ const handleSearch = (event: Event) => {
 // ----- プロフィール編集とログアウトの関数を追加0508 --------
 const goToEdit = () => {
     console.log("編集画面へ移動");
-    // router.push('/profile/edit');
+    router.push('/profile/edit');
 };
 
 const handleLogout = () => {
     console.log("ログアウト処理実行");
+    localStorage.removeItem('token');
     alert("ログアウトしました");
     router.push('/login'); // ログイン画面へ飛ばす
 };
@@ -57,24 +58,24 @@ const handleLogout = () => {
                         >
                     </div>
                     <button class="post-button" @click="handlePostClick">+ 投稿する</button>
-                </div>
 
-                <!-- ログアウトボタン0508暫定的---------------- -->
-                <div class="user-menu-container">
-                    <div class="profile-icon">
-                        <div class="color-avatar">
-                            <span>U</span> 
+                    <!-- ログアウトボタン0508暫定的---------------- -->
+                    <div class="user-menu-container">
+                        <div class="profile-icon">
+                            <div class="color-avatar">
+                                <span>U</span> 
+                            </div>
+                        </div>
+
+                        <div class="dropdown-menu">
+                            <button @click="goToEdit">プロフィール編集</button>
+                            <!-- <hr /> -->
+                            <button @click="handleLogout" class="logout-btn">ログアウト</button>
                         </div>
                     </div>
-
-                    <div class="dropdown-menu">
-                        <button @click="goToEdit">プロフィール編集</button>
-                        <!-- <hr /> -->
-                        <button @click="handleLogout" class="logout-btn">ログアウト</button>
-                    </div>
+                    <!-- ↑0508プロフィール用---------------------------- -->
                 </div>
-                <!-- ↑0508プロフィール用---------------------------- -->
-                
+
             </div>
         </header>
     </div>
@@ -87,6 +88,10 @@ const handleLogout = () => {
 <style scoped>
 .article-header-wrapper {
     width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #ddd;
 }
 
 .site-header {
