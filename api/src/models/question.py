@@ -2,6 +2,7 @@
 
 import uuid
 from sqlalchemy import Column, String, Text, DateTime, Boolean, ForeignKey, UUID
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from src.database import Base
 
@@ -14,6 +15,12 @@ class Question(Base):
     title = Column(String, nullable=False)
     body = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
+    
+    user = relationship("User")
+
+    @property
+    def user_name(self):
+        return self.user.name if self.user else None
 
 
 class QuestionComment(Base):

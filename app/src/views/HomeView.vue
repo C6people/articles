@@ -146,7 +146,7 @@ const formatDate = (dateStr: string | undefined) => {
             <h3 class="post-title">{{ post.title }}</h3>
             <p class="post-summary">{{ post.content }}</p>
             <div class="post-footer">
-              <span class="author-name">👤 ID: {{ post.user_id }}</span>
+              <span class="author-name">👤 {{ post.user_name || '不明' }}</span>
               <div class="post-stats">
                 <span class="stat">💬 コメント {{ post.comments }}</span>
                 <span class="stat">👍 高評価 {{ post.likes }}</span>
