@@ -24,6 +24,20 @@ const selectedCategory = ref("すべて");
 const sortOrder = ref<"desc" | "asc">("desc"); // desc: 新着順, asc: 古い順
 const router = useRouter();
 
+// ----------------------------------------------------
+// 暫定的なロジック：しょうもないURLクエリパラメータ監視ロジック（後で消す）0507
+// URLのクエリパラメータを監視して、searchQueryに反映させるロジック
+// 【追加】URLの ?q=... を監視して、searchQuery に代入する
+watch(
+  () => route.query.q, 
+  (newVal) => {
+    // URLに値があればそれを、なければ空文字をセット
+    searchQuery.value = (newVal as string) || "";
+  }, 
+  { immediate: true } // 画面が開いた瞬間も実行する
+);
+// ----------------------------------------------------
+
 /*  3. 検索・絞り込み・ソートの統合ロジック */
 const filteredAndSortedPosts = computed(() => {
   /* ① まずは検索ワードとカテゴリーで絞り込む */
