@@ -1,45 +1,35 @@
-<<<<<<< HEAD
-<script setup>
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { fetchArticleById, type Article } from '@/api/articles';
 
 const route = useRoute();
-const article = ref(null);
-const loading = ref(true);
 const router = useRouter();
+const article = ref<Article | null>(null);
+const loading = ref(true);
 const searchQuery = ref("");
 
-onMounted(() => {
-  // ダミーデータ
-  const id = String(route.params.id)
-
-  article.value = {
-    id: id,
-    title: "ReactとVue.jsの違いについて",
-    body: `サーバーサイド専攻ですが、フロントエンドの基礎を固めるために比較しました。どちらも一長一短ありますね。
-    
-1. はじめに
-
-普段はNode.jsやPythonでAPIを叩いているサーバーサイド寄りですが、フロントエンドの基礎を固めるために、モダンな2大フレームワークである「React」と「Vue.js」を比較してみました。
-
-2. Vue.js：直感的でHTMLの延長に近い
-Vueは構文がシンプルで、学習コストが低いです。
-
-3. React：すべてがJavaScriptの世界
-ReactはJS中心で設計されており、柔軟性が高いです。
-
-4. まとめ
-用途によって使い分けるのがベストだと感じました。`,
-    createdAt: "2026-04-22T18:00:00",
-    category: "プログラミング",
-    author: "Mahiro"
-  };
-
-  loading.value = false;
+onMounted(async () => {
+  const id = route.params.id as string;
+  try {
+    article.value = await fetchArticleById(id);
+  } catch (e) {
+    console.error("記事が見つかりませんでした");
+  } finally {
+    loading.value = false;
+  }
 });
 
-const formatDate = (date) => {
-  return new Date(date).toLocaleString();
+const formatDate = (dateStr: string | Date | undefined) => {
+  if (!dateStr) return "";
+  const safeDateStr = typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+') ? dateStr + 'Z' : dateStr;
+  const d = new Date(safeDateStr);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
 };
 
 const backToHome = () => {
@@ -52,44 +42,62 @@ const goToPost = () => {
 </script>
 
 <template>
-    <header class="main-header">
-      <div class="header-inner">
-        <h1 class="logo" @click="backToHome">
-                プログラミング情報共有サイト
-        </h1>
-        <div class="search-bar">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="キーワードから知恵を探す..."
-          />
-          <button class="search-button">🔍 検索</button>
-        </div>
-        <button class="post-button" @click="goToPost">＋ 質問する</button>
+  <header class="main-header">
+    <div class="header-inner">
+      <h1 class="logo" @click="backToHome">
+        プログラミング情報共有サイト
+      </h1>
+      <div class="search-bar">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="キーワードから知恵を探す..."
+        />
+        <button class="search-button">🔍 検索</button>
       </div>
-    </header>
+      <button class="post-button" @click="goToPost">＋ 質問する</button>
+    </div>
+  </header>
 
   <div class="page">
     <div v-if="loading">読み込み中...</div>
 
-    <div v-else-if="article" class="container">
-      <!-- 戻るボタン（左上・横長） -->
-      <button class="back-button" @click="backToHome">
-        ← 記事一覧へ戻る
-      </button>
+    <div v-else-if="article" class="content-wrapper">
+      <!-- 左カラム：メイン記事と戻るボタン -->
+      <div class="left-column">
+        <button class="back-button" @click="backToHome">
+          記事一覧へ戻る
+        </button>
 
-      <!-- メイン -->
-      <div class="main">
-        <h1 class="title">{{ article.title }}</h1>
+        <div class="main-card">
+          <h1 class="title">{{ article.title }}</h1>
+          <div class="author-name">{{ article.user_id }}</div>
+          <div class="category-badge">{{ article.category }}</div>
+          <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
 
-        <div class="meta">
-            <span class="author">{{ article.author }}</span>
-            <span class="genre">{{ article.category }}</span>
-            <span class="date">{{ formatDate(article.createdAt) }}</span>
-        </div>
-
-        <div class="body">
+          <div class="body-content">
             {{ article.body }}
+          </div>
+        </div>
+      </div>
+
+      <!-- 右カラム：サイドバー -->
+      <aside class="sidebar">
+        <h2 class="sidebar-title">おすすめ記事一覧</h2>
+        <ul class="recommended-list">
+          <li>FastAPIでのDB接続エラー解決策</li>
+          <li>ポートフォリオのデザイン案</li>
+        </ul>
+      </aside>
+    </div>
+
+    <div v-else class="content-wrapper">
+      <div class="left-column">
+        <button class="back-button" @click="backToHome">
+          記事一覧へ戻る
+        </button>
+        <div class="main-card">
+          <p>記事が見つかりませんでした。</p>
         </div>
       </div>
     </div>
@@ -97,27 +105,42 @@ const goToPost = () => {
 </template>
 
 <style scoped>
+/* 全体の背景と配置 */
 .page {
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  padding: 40px;
   display: flex;
   justify-content: center;
-  padding: 40px;
-  background: #f5f5f5;
 }
 
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
+/* 2カラムレイアウト */
+.content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  width: 100%;
+  max-width: 1100px;
 }
 
+/* 左カラム */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* 戻るボタン */
 .back-button {
   display: inline-block;
-  padding: 10px 24px;
+  padding: 8px 24px;
   margin-bottom: 20px;
-  background: white;
-  border: 2px solid #2693B4;
+  background: transparent;
+  border: 1px solid #2693B4;
   color: #2693B4;
   border-radius: 999px;
   font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
 }
@@ -127,51 +150,88 @@ const goToPost = () => {
   color: white;
 }
 
-.main {
+/* 記事カード */
+.main-card {
+  width: 100%;
   background: white;
-  padding: 30px;
+  padding: 60px 50px;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .title {
-  font-size: 24px;
-  margin-bottom: 16px;
-}
-
-.meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  color: #666;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
-
-.meta span::before {
+  font-size: 28px;
   font-weight: bold;
   color: #333;
-  margin-right: 6px;
+  margin: 0 0 15px 0;
+  line-height: 1.4;
 }
 
-.author::before {
-  content: "投稿者:";
+.author-name {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 15px;
 }
 
-.genre::before {
-  content: "ジャンル:";
+.category-badge {
+  display: inline-block;
+  background-color: #2693B4;
+  color: white;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 25px;
 }
 
-.date::before {
-  content: "投稿日:";
+.post-date {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 50px;
 }
 
-.body {
+.body-content {
   white-space: pre-wrap;
-  line-height: 1.7;
+  line-height: 2.0;
+  color: #444;
+  font-size: 16px;
 }
 
-/* ヘッダー装飾 */
+/* サイドバー */
+.sidebar {
+  padding-top: 60px; /* 記事カードの上部と大体合わせる */
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #999;
+  margin: 0 0 10px 0;
+}
+
+.recommended-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recommended-list li {
+  padding: 20px 0;
+  border-bottom: 1px solid #ccc;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.recommended-list li:hover {
+  color: #2693B4;
+}
+
+/* ヘッダー装飾（既存そのまま） */
 .main-header {
   width: 100%;
   background-color: #fff;
@@ -232,33 +292,3 @@ const goToPost = () => {
   cursor: pointer;
 }
 </style>
-=======
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { fetchArticleById, type Article } from '@/api/articles';
-
-const route = useRoute();
-const article = ref<Article | null>(null);
-
-onMounted(async () => {
-  const id = route.params.id as string;
-  try {
-    // 全件ではなく、このIDの記事だけをDBから呼ぶ
-    article.value = await fetchArticleById(id);
-  } catch (e) {
-    console.error("記事が見つかりませんでした");
-  }
-});
-</script>
-
-<template>
-  <div v-if="article">
-    <h1>{{ article.title }}</h1>
-    <p>投稿者ID: {{ article.user_id }}</p>
-    <hr>
-    <div>{{ article.body }}</div>
-  </div>
-</template>
-
->>>>>>> 32adcf2 (記事カードからDB取得、画面遷移)

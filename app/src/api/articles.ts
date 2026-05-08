@@ -1,5 +1,6 @@
 import api from './client';
 
+
 export type Article = {
   id: string;
   user_id: string;
@@ -10,7 +11,7 @@ export type Article = {
   category: string;
   likes: number;
   comments: number;
-  createdAt: string;
+  created_at: string;
 };
 
 export async function fetchArticles(): Promise<Article[]> {

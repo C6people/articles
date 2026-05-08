@@ -39,9 +39,9 @@ const filteredAndSortedPosts = computed(() => {
 
   /* ② 次に日付で並び替える（元のデータを壊さないようコピーしてから実行） */
   return [...result].sort((a, b) => {
-    // createdAtが不正な場合は0とみなす
-    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    // created_atが不正な場合は0とみなす
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
     return sortOrder.value === "desc"
       ? dateB - dateA // 新着順（大きい順）
       : dateA - dateB; // 古い順（小さい順）
@@ -54,6 +54,29 @@ const goToPost = () => {
 };
 const goToDetail = (id: string) => {
   router.push({ name: "PostDetail", params: { id } });
+};
+const formatDate = (dateStr: string | undefined) => {
+  if (!dateStr) return '';
+  const safeDateStr = dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+  const date = new Date(safeDateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) {
+    return diffSec <= 0 ? '数秒前' : `${diffSec}秒前`;
+  } else if (diffMin < 60) {
+    return `${diffMin}分前`;
+  } else if (diffHour < 24) {
+    return `${diffHour}時間前`;
+  } else if (diffDay < 7) {
+    return `${diffDay}日前`;
+  } else {
+    return date.toLocaleDateString('ja-JP'); 
+  }
 };
 </script>
 
@@ -100,15 +123,15 @@ const goToDetail = (id: string) => {
           <div class="sort-tabs">
             <button
               class="tab"
-              :class="{ active: sortOrder.value === 'desc' }"
-              @click="sortOrder.value = 'desc'"
+              :class="{ active: sortOrder === 'desc' }"
+              @click="sortOrder = 'desc'"
             >
               新着順
             </button>
             <button
               class="tab"
-              :class="{ active: sortOrder.value === 'asc' }"
-              @click="sortOrder.value = 'asc'"
+              :class="{ active: sortOrder === 'asc' }"
+              @click="sortOrder = 'asc'"
             >
               古い順
             </button>
@@ -124,7 +147,7 @@ const goToDetail = (id: string) => {
           >
             <div class="post-header">
               <span class="category-badge">{{ post.category }}</span>
-              <span class="post-date">{{ post.createdAt }}</span>
+              <span class="post-date">{{ formatDate(post.created_at) }}</span>
             </div>
             <h3 class="post-title">{{ post.title }}</h3>
             <p class="post-summary">{{ post.content }}</p>

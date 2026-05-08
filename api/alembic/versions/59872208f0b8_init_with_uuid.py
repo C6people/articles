@@ -34,6 +34,7 @@ def upgrade() -> None:
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('body', sa.Text(), nullable=False),
+    sa.Column('category', sa.String(), server_default='その他', nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

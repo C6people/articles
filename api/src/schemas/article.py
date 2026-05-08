@@ -11,9 +11,9 @@ class ArticleResponse(BaseModel):
     id: UUID
     user_id: UUID
     title: str
+    category: str
     body: str
     created_at: datetime
-    category: str
 
     class Config:
         from_attributes = True

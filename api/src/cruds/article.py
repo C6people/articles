@@ -20,6 +20,7 @@ async def create_article(db: AsyncSession, article_in: article_schema.ArticleCre
     new_article = Article(
         title=article_in.title,
         body=article_in.body,
+        category=article_in.category,
         user_id=user_id
     )
     db.add(new_article)
