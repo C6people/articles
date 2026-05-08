@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { fetchArticles } from '@/api/articles';
 import type { Article } from '@/api/articles';
 
@@ -23,6 +23,7 @@ const searchQuery = ref("");
 const selectedCategory = ref("すべて");
 const sortOrder = ref<"desc" | "asc">("desc"); // desc: 新着順, asc: 古い順
 const router = useRouter();
+const route = useRoute();
 
 // ----------------------------------------------------
 // 暫定的なロジック：しょうもないURLクエリパラメータ監視ロジック（後で消す）0507
