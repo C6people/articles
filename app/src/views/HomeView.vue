@@ -5,17 +5,39 @@ import { useRouter, useRoute } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 import { fetchArticles } from '@/api/articles';
 import type { Article } from '@/api/articles';
+import { fetchQuestions } from '@/api/questions';
 
-const categories = ["すべて", "プログラミング", "質問", "コラム", "その他"];
+const categories = ["すべて", "プログラミング", "質問", "コラム", "制作物", "その他"];
 // --- 1. データ管理（API接続） ---
 const posts = ref<Article[]>([]);
 
 onMounted(async () => {
   try {
-    posts.value = await fetchArticles();
+    // 記事と質問を同時に取得
+    const [articles, questions] = await Promise.all([
+      fetchArticles(),
+      fetchQuestions(),
+    ]);
+
+    // 質問データを記事と同じ形式に変換（categoryを「質問」に設定）
+    const questionPosts: Article[] = questions.map((q) => ({
+      id: q.id,
+      user_id: q.user_id,
+      user_name: q.user_name,
+      title: q.title,
+      body: q.body,
+      content: '',         // Homeではタイトルのみ表示
+      author: q.user_name || '',
+      category: '質問',    // 質問は固定カテゴリー
+      likes: 0,
+      comments: 0,
+      created_at: q.created_at,
+    }));
+
+    // 記事と質問をマージ
+    posts.value = [...articles, ...questionPosts];
   } catch (e) {
     // エラー時は空配列のまま
-    // 必要に応じてエラーメッセージ表示も可
   }
 });
 
@@ -68,8 +90,9 @@ const filteredAndSortedPosts = computed(() => {
 const goToPost = () => {
   router.push("/post");
 };
-const goToDetail = (id: string) => {
-  router.push({ name: "PostDetail", params: { id } });
+const goToDetail = (post: Article) => {
+  const type = post.category === '質問' ? 'question' : 'article';
+  router.push({ name: "PostDetail", params: { id: post.id }, query: { type } });
 };
 const formatDate = (dateStr: string | undefined) => {
   if (!dateStr) return '';
@@ -137,7 +160,7 @@ const formatDate = (dateStr: string | undefined) => {
             v-for="post in filteredAndSortedPosts"
             :key="post.id"
             class="post-card"
-            @click="goToDetail(post.id)"
+            @click="goToDetail(post)"
           >
             <div class="post-header">
               <span class="category-badge">{{ post.category }}</span>

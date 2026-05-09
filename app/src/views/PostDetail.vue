@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 import { fetchArticleById, type Article } from '@/api/articles';
+import { fetchQuestionById } from '@/api/questions';
 
 const route = useRoute();
 const router = useRouter();
@@ -12,8 +13,28 @@ const searchQuery = ref("");
 
 onMounted(async () => {
   const id = route.params.id as string;
+  const type = route.query.type as string; // 'question' or 'article'
+
   try {
-    article.value = await fetchArticleById(id);
+    if (type === 'question') {
+      // 質問APIから取得し、Article形式に変換
+      const q = await fetchQuestionById(id);
+      article.value = {
+        id: q.id,
+        user_id: q.user_id,
+        user_name: q.user_name,
+        title: q.title,
+        body: q.body,
+        content: q.body,
+        author: q.user_name || '',
+        category: '質問',
+        likes: 0,
+        comments: 0,
+        created_at: q.created_at,
+      };
+    } else {
+      article.value = await fetchArticleById(id);
+    }
   } catch (e) {
     console.error("記事が見つかりませんでした");
   } finally {
