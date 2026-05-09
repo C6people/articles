@@ -64,31 +64,11 @@ const goToPost = () => {
 </script>
 
 <template>
-  <CommonHeader />
+  <div class="full-screen-container">
+    <CommonHeader />
 
-  <div class="page">
-    <div v-if="loading">読み込み中...</div>
-
-    <div v-else-if="article" class="content-wrapper">
-      <!-- 左カラム：メイン記事と戻るボタン -->
-      <div class="left-column">
-        <button class="back-button" @click="backToHome">
-          記事一覧へ戻る
-        </button>
-
-        <div class="main-card">
-          <h1 class="title">{{ article.title }}</h1>
-          <div class="author-name">👤 {{ article.user_name || '不明' }}</div>
-          <div class="category-badge">{{ article.category }}</div>
-          <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
-
-          <div class="body-content">
-            {{ article.body }}
-          </div>
-        </div>
-      </div>
-
-      <!-- 右カラム：サイドバー -->
+    <div class="content-wrapper">
+      <!-- 左カラム：サイドバー -->
       <aside class="sidebar">
         <h2 class="sidebar-title">おすすめ記事一覧</h2>
         <ul class="recommended-list">
@@ -96,45 +76,93 @@ const goToPost = () => {
           <li>ポートフォリオのデザイン案</li>
         </ul>
       </aside>
-    </div>
 
-    <div v-else class="content-wrapper">
-      <div class="left-column">
-        <button class="back-button" @click="backToHome">
-          記事一覧へ戻る
-        </button>
-        <div class="main-card">
-          <p>記事が見つかりませんでした。</p>
-        </div>
-      </div>
+      <!-- 右カラム：記事詳細 -->
+      <main class="main-content">
+        <div v-if="loading" class="loading-text">読み込み中...</div>
+
+        <template v-else-if="article">
+          <button class="back-button" @click="backToHome">
+            記事一覧へ戻る
+          </button>
+
+          <div class="main-card">
+            <h1 class="title">{{ article.title }}</h1>
+            <div class="author-name">👤 {{ article.user_name || '不明' }}</div>
+            <div class="category-badge">{{ article.category }}</div>
+            <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
+
+            <div class="body-content">
+              {{ article.body }}
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
+          <button class="back-button" @click="backToHome">
+            記事一覧へ戻る
+          </button>
+          <div class="main-card">
+            <p>記事が見つかりませんでした。</p>
+          </div>
+        </template>
+      </main>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* 全体の背景と配置 */
-.page {
-  background-color: #f0f2f5;
+/* 全画面コンテナ */
+.full-screen-container {
+  width: 100%;
   min-height: 100vh;
-  padding: 40px;
-  display: flex;
-  justify-content: center;
+  background-color: #f0f2f5;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-/* 2カラムレイアウト */
+/* 2カラムレイアウト (左250px + 右1fr) */
 .content-wrapper {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 40px;
+  grid-template-columns: 250px 1fr;
   width: 100%;
-  max-width: 1100px;
+  padding: 30px 40px;
+  box-sizing: border-box;
+  gap: 30px;
 }
 
-/* 左カラム */
-.left-column {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+/* サイドバー */
+.sidebar {
+  padding-top: 60px;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #999;
+  margin: 0 0 10px 0;
+}
+
+.recommended-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recommended-list li {
+  padding: 20px 0;
+  border-bottom: 1px solid #ccc;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.recommended-list li:hover {
+  color: #2693B4;
 }
 
 /* 戻るボタン */
@@ -205,39 +233,10 @@ const goToPost = () => {
   font-size: 16px;
 }
 
-/* サイドバー */
-.sidebar {
-  padding-top: 60px; /* 記事カードの上部と大体合わせる */
+.loading-text {
+  text-align: center;
+  padding: 100px 0;
+  color: #999;
 }
-
-.sidebar-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #999;
-  margin: 0 0 10px 0;
-}
-
-.recommended-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.recommended-list li {
-  padding: 20px 0;
-  border-bottom: 1px solid #ccc;
-  font-size: 14px;
-  color: #555;
-  cursor: pointer;
-  line-height: 1.5;
-}
-
-.recommended-list li:hover {
-  color: #2693B4;
-}
-
-/* ヘッダー装飾（既存そのまま） */
-
 </style>
+
