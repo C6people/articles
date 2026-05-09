@@ -1,6 +1,6 @@
 # Articles Project
 
-Vue 3 (フロントエンド) と FastAPI + PostgreSQL (バックエンド) を使用したWebアプリケーションのプロジェクトです。
+Vue 3 (フロントエンド) と FastAPI + PostgreSQL (バックエンド) を使用した、プログラミング情報共有Webアプリケーションです。
 
 ---
 
@@ -11,7 +11,7 @@ Vue 3 (フロントエンド) と FastAPI + PostgreSQL (バックエンド) を�
 ### 📌 前提条件
 以下のツールがインストールされていることを確認してください。
 - **Docker / Docker Compose** (バックエンド・DB環境の構築に使用)
-- **Node.js / npm** (フロントエンド環境の構築に使用)
+- **Node.js (v20.19 以上 または v22.12 以上) / npm** (フロントエンド環境の構築に使用)
 
 ---
 
@@ -36,7 +36,14 @@ Vue 3 (フロントエンド) と FastAPI + PostgreSQL (バックエンド) を�
    docker compose up -d --build
    ```
 
-3. **動作確認**
+3. **データベースのマイグレーション**
+   初回起動時やテーブル構造に変更があった場合、以下のコマンドでマイグレーションを実行します。
+
+   ```bash
+   docker exec baymux-api alembic upgrade head
+   ```
+
+4. **動作確認**
    起動が完了したら、ブラウザで以下のURLにアクセスしてください。
    - **API ドキュメント (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
    画面が表示されればバックエンドの構築は成功です！🎉
@@ -63,7 +70,9 @@ Vue 3 (フロントエンド) と FastAPI + PostgreSQL (バックエンド) を�
    ```
 
 3. **動作確認**
-   ターミナルに表示されるURL（例: `http://localhost:5173`）をブラウザで開いてください。Vueの画面が表示されれば成功です！
+   ターミナルに表示されるURL（例: `http://localhost:5173`）をブラウザで開いてください。
+   ログイン画面が表示されれば成功です！
+   ※未ログイン状態ではログイン画面・新規登録画面以外のページにはアクセスできません（認証ガード機能）。
 
 ---
 
@@ -73,6 +82,8 @@ Vue 3 (フロントエンド) と FastAPI + PostgreSQL (バックエンド) を�
   `api/src/` の中にあるPythonファイルを編集して保存すると、自動的にAPIサーバーが再起動し、変更が反映されます。
 - **Pythonパッケージの追加**
   新しいライブラリを追加したい場合は、`api/requirements.txt` (または開発用なら `requirements-dev.txt`) に追記し、再度 `docker compose up -d --build` を実行してください。
+- **フロントエンドのパッケージ追加**
+  新しいnpmパッケージを追加した場合は、`app/` ディレクトリ内で `npm install <パッケージ名>` を実行してください。
 - **Dockerを停止・削除したい場合**
   ```bash
   # 停止するだけの場合
