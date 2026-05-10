@@ -53,11 +53,12 @@ const route = useRoute();
 // URLのクエリパラメータを監視して、searchQueryに反映させるロジック
 // 【追加】URLの ?q=... を監視して、searchQuery に代入する
 watch(
-  () => route.query.q, 
+  () => route.query.q,
   (newVal) => {
-    // URLに値があればそれを、なければ空文字をセット
-    searchQuery.value = (newVal as string) || "";
-  }, 
+    // query は string | string[] | undefined の可能性がある
+    const q = Array.isArray(newVal) ? newVal[0] : newVal;
+    searchQuery.value = (q as string) || "";
+  },
   { immediate: true } // 画面が開いた瞬間も実行する
 );
 // ----------------------------------------------------
@@ -69,9 +70,11 @@ const filteredAndSortedPosts = computed(() => {
     const isCategoryMatch =
       selectedCategory.value === "すべて" ||
       post.category === selectedCategory.value;
-    const isSearchMatch =
-      post.title.includes(searchQuery.value) ||
-      post.content.includes(searchQuery.value);
+    // 検索語や記事のフィールドが undefined でも安全に扱えるようにする
+    const q = (searchQuery.value || "").toString().toLowerCase();
+    const title = (post.title || "").toString().toLowerCase();
+    const bodyOrContent = (post.content ?? post.body ?? "").toString().toLowerCase();
+    const isSearchMatch = title.includes(q) || bodyOrContent.includes(q);
     return isCategoryMatch && isSearchMatch;
   });
 
