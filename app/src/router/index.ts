@@ -41,6 +41,22 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
-})
+});
 
-export default router
+// ナビゲーションガード：ログインチェック
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token');
+  
+  // ログインや新規登録など、誰でも見れるページ
+  const publicPages = ['/login', '/signup'];
+  const authRequired = !publicPages.includes(to.path);
+
+  // トークンがなく、かつログイン・新規登録画面以外へアクセスしようとした場合
+  if (authRequired && !token) {
+    return next('/login');
+  }
+
+  next();
+});
+
+export default router;

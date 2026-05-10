@@ -1,13 +1,44 @@
 # フロントエンド（Vue 3）開発ガイド
 
-このプロジェクトのフロントエンド (`app/`) の構成と、ファイルの追加方法をまとめたドキュメントです。
+このプロジェクトのフロントエンド (`app/`) の構成と開発方法をまとめたドキュメントです。
+
+---
+
+## 技術スタック
+
+| カテゴリ | 技術 |
+|---------|------|
+| フレームワーク | Vue 3 (Composition API + `<script setup>`) |
+| 言語 | TypeScript |
+| ルーティング | vue-router |
+| HTTP通信 | axios |
+| ビルドツール | Vite |
+| 型チェック | vue-tsc |
+
+---
+
+## 主要パッケージ
+
+### dependencies (本番で必要)
+| パッケージ | 用途 |
+|-----------|------|
+| `vue` | UIフレームワーク |
+| `vue-router` | ページ遷移（ルーティング） |
+| `axios` | API通信（JWTトークンの自動付与付き） |
+
+### devDependencies (開発時のみ)
+| パッケージ | 用途 |
+|-----------|------|
+| `vite` | 開発サーバー・ビルドツール |
+| `@vitejs/plugin-vue` | Vite用Vueプラグイン |
+| `typescript` | TypeScript コンパイラ |
+| `vue-tsc` | Vue + TypeScript の型チェック |
+| `vite-plugin-vue-devtools` | Vue DevTools連携 |
+| `npm-run-all2` | npm スクリプトの並列実行 |
 
 ---
 
 ## 📂 ディレクトリ構成
-
-現在のフロントエンドのフォルダ構成と、**今後追加すべきフォルダ**は以下の通りです。
-`★` マークが付いているものは今後新しく作るフォルダです。
 
 ```
 app/src/
@@ -17,133 +48,63 @@ app/src/
 ├── assets/              ← 画像・CSS などの静的ファイル
 │   ├── base.css
 │   ├── main.css
+│   ├── logo.png            ← サイトロゴ画像
 │   └── logo.svg
 │
-├── components/          ← 再利用できる小さな部品（ボタン、カードなど）
-│   ├── HelloWorld.vue      ← サンプル（後で消してOK）
-│   ├── TheWelcome.vue      ← サンプル（後で消してOK）
-│   └── WelcomeItem.vue     ← サンプル（後で消してOK）
+├── components/          ← 再利用できる小さな部品
+│   └── CommonHeader.vue    ← 全画面共通のヘッダー（検索バー・投稿ボタン・ユーザーメニュー）
 │
-├── ★ views/             ← 各画面のページファイルを置く場所
-│   ├── HomeView.vue         ← トップページ
-│   ├── ArticleListView.vue  ← 記事一覧画面
-│   ├── ArticleDetailView.vue← 記事詳細画面
-│   ├── QuestionListView.vue ← 質問一覧画面
-│   ├── QuestionDetailView.vue← 質問詳細画面
-│   └── LoginView.vue        ← ログイン画面
+├── views/               ← 各画面のページファイル
+│   ├── HomeView.vue        ← トップページ（記事・質問の一覧表示）
+│   ├── PostFormView.vue    ← 新規投稿画面
+│   ├── PostDetail.vue      ← 記事・質問の詳細画面
+│   ├── LoginView.vue       ← ログイン画面
+│   └── SignUpView.vue      ← 新規登録画面
 │
-├── ★ router/            ← ページ遷移（ルーティング）の設定
-│   └── index.ts             ← URLとページの紐付けを定義する
+├── router/              ← ページ遷移（ルーティング）の設定
+│   └── index.ts            ← URLとページの紐付け＋認証ガード
 │
-├── ★ api/               ← バックエンド（FastAPI）との通信処理
-│   └── client.ts            ← API呼び出し用の関数をまとめる
-│
-└── ★ types/             ← TypeScriptの型定義
-    └── index.ts             ← Article, User などのデータの型を定義
+└── api/                 ← バックエンド（FastAPI）との通信処理
+    ├── client.ts           ← axiosインスタンス（トークン自動付与・401ハンドリング）
+    ├── articles.ts         ← 記事APIの型定義と取得関数
+    └── questions.ts        ← 質問APIの型定義と取得関数
 ```
 
 ---
 
-## 🧩 各フォルダの役割と「何を書くか」
+## 🧩 各フォルダの役割
 
 ### 1. `views/` — 画面（ページ）
 **「URL（アドレス）ごとに1つ作る」** のが基本です。
 
-例えば、以下のような対応になります：
 | URL | ファイル | 内容 |
 |---|---|---|
-| `/` | `HomeView.vue` | トップページ |
-| `/articles` | `ArticleListView.vue` | 記事の一覧を表示 |
-| `/articles/123` | `ArticleDetailView.vue` | 記事の詳細と本文を表示 |
-| `/questions` | `QuestionListView.vue` | 質問の一覧を表示 |
+| `/` | `HomeView.vue` | トップページ（記事＋質問の一覧） |
+| `/post` | `PostFormView.vue` | 新規投稿画面 |
+| `/post/:id` | `PostDetail.vue` | 記事・質問の詳細表示 |
 | `/login` | `LoginView.vue` | ログインフォーム |
+| `/signup` | `SignUpView.vue` | 新規登録フォーム |
 
 ### 2. `components/` — 部品（パーツ）
 **「複数の画面で繰り返し使う部品」** を置きます。
 
-例：
-- `ArticleCard.vue` — 記事一覧で表示する1つ分のカード
-- `CommentForm.vue` — コメント入力フォーム（記事・質問の両方で使える）
-- `LikeButton.vue` — いいねボタン
-- `UserAvatar.vue` — ユーザーのアイコンと名前の表示
+- `CommonHeader.vue` — 全画面共通のヘッダー（ロゴ・検索バー・投稿ボタン・ユーザーメニュー）
 
-### 3. `router/index.ts` — ルーティング設定
-**「このURLにアクセスしたら、このページ（view）を表示してね」** という設定を書きます。
+### 3. `router/index.ts` — ルーティング設定 + 認証ガード
+- URLとページの対応関係を定義
+- `beforeEach` ガードにより、ログイン/新規登録以外のページはトークンが無いとアクセスできない
 
-```ts
-// router/index.ts のイメージ
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
-import ArticleListView from '@/views/ArticleListView.vue'
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    { path: '/',          component: HomeView },
-    { path: '/articles',  component: ArticleListView },
-    // ... 他のページも同様に追加
-  ],
-})
-
-export default router
-```
-
-> ⚠️ ルーターを使うには `vue-router` パッケージのインストールが必要です。
-> ```bash
-> cd app && npm install vue-router
-> ```
-
-### 4. `api/client.ts` — API通信
-**「バックエンド（FastAPI）からデータを取ってくる処理」** をまとめます。
-
-```ts
-// api/client.ts のイメージ
-const API_BASE = 'http://localhost:8000'
-
-// 記事一覧を取得する関数
-export async function getArticles() {
-  const res = await fetch(`${API_BASE}/articles`)
-  return await res.json()
-}
-
-// 記事を投稿する関数
-export async function createArticle(title: string, body: string) {
-  const res = await fetch(`${API_BASE}/articles`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, body }),
-  })
-  return await res.json()
-}
-```
-
-### 5. `types/index.ts` — 型定義
-**「APIから返ってくるデータの形（型）」** を定義します。
-チーム内で「このデータにはどんな項目が入っているか」を共有するのに役立ちます。
-
-```ts
-// types/index.ts のイメージ
-export interface User {
-  id: number
-  user_id: string
-  name: string
-  role: 'student' | 'teacher'
-}
-
-export interface Article {
-  id: number
-  user_id: number
-  title: string
-  body: string
-  created_at: string
-}
-```
+### 4. `api/` — API通信
+- `client.ts` — axiosインスタンスの設定
+  - **リクエストインターセプター**: `localStorage` のトークンを自動で `Authorization` ヘッダーに付与
+  - **レスポンスインターセプター**: 401エラー時にトークン削除＋ログイン画面へリダイレクト
+- `articles.ts` — 記事の取得関数（一覧・個別）と `Article` 型定義
+- `questions.ts` — 質問の取得関数（一覧・個別）と `Question` 型定義
 
 ---
-
 
 ## 💡 Tips
 
 - **`@` は `src/` のショートカット**: `import Foo from '@/components/Foo.vue'` のように書くと、どのファイルからでも `src/` を起点にしたパスで import できます（`vite.config.ts` で設定済み）。
-- **ファイル名のルール**: Vue のファイルは **PascalCase**（例: `ArticleCard.vue`）で命名するのが Vue の公式推奨です。
-- **サンプルファイルの削除**: `components/` にある `HelloWorld.vue`, `TheWelcome.vue`, `WelcomeItem.vue` は Vite が自動生成したサンプルなので、開発を始めたら削除してOKです。
+- **ファイル名のルール**: Vue のファイルは **PascalCase**（例: `CommonHeader.vue`）で命名するのが Vue の公式推奨です。
+- **Node.jsバージョン**: `v20.19` 以上 または `v22.12` 以上が必要です（`package.json` の `engines` で指定）。

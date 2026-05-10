@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/api/client'
 
 const router = useRouter()
 
@@ -54,20 +55,11 @@ const handleSubmit = async (event: Event) => {
   if (hasError) return
 
   try {
-    const token = localStorage.getItem("token")
-    console.log(token)// 後で消す
-    if (!token) {
-      alert("ログインしてください")
-      router.push("/login")
-      return
-    }
-    // API振り分け
-    const isQuestion = genre.value === "question"
-    const url = isQuestion
-      ? "http://localhost:8000/questions"
-      : "http://localhost:8000/articles"
+    // API振り分け: ジャンルが「質問」ならQuestion API、それ以外はArticle API
+    const isQuestion = genre.value === '質問';
+    const endpoint = isQuestion ? '/questions' : '/articles';
 
-    // 送信データ（バックのschemaに合わせる）
+    // 送信データ
     const body = isQuestion
       ? {
           title: title.value,
@@ -75,28 +67,23 @@ const handleSubmit = async (event: Event) => {
         }
       : {
           title: title.value,
-          body: content.value
-        }
+          body: content.value,
+          category: genre.value // ここでフロントで選択したカラム(ジャンル)がそのまま入ります
+        };
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify(body)
-    })
+    // api クライアントを使うので token はインターセプターが自動付与してくれます
+    const res = await api.post(endpoint, body);
 
-    if (!res.ok) {
-      throw new Error("投稿に失敗")
+    if (res.status !== 201 && res.status !== 200) {
+      throw new Error("投稿に失敗");
     }
 
-    alert("投稿成功")
-    router.push("/")
+    alert("投稿成功");
+    router.push("/");
 
-  } catch (e) {
-    console.error(e)
-    alert("投稿に失敗しました")
+  } catch (e: any) {
+    console.error("API Error Details:", e.response?.data || e);
+    alert("投稿に失敗しました");
   }
 }
 
@@ -153,10 +140,11 @@ onMounted(() => {
             @blur="clearFieldError('genre')"
           >
             <option value="">選択してください</option>
-            <option value="question">質問</option>
-            <option value="project">制作物</option>
-            <option value="column">コラム</option>
-            <option value="other">その他</option>
+            <option value="質問">質問</option>
+            <option value="プログラミング">プログラミング</option>
+            <option value="制作物">制作物</option>
+            <option value="コラム">コラム</option>
+            <option value="その他">その他</option>
           </select>
           <div class="error-msg" v-if="errors.genre">{{ errors.genre }}</div>
         </div>

@@ -2,20 +2,42 @@
 
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import CommonHeader from '@/components/CommonHeader.vue';
 import { fetchArticles } from '@/api/articles';
 import type { Article } from '@/api/articles';
-import CommonHeader from '@/components/CommonHeader.vue';
+import { fetchQuestions } from '@/api/questions';
 
-const categories = ["すべて", "プログラミング", "質問", "コラム", "その他"];
+const categories = ["すべて", "プログラミング", "質問", "コラム", "制作物", "その他"];
 // --- 1. データ管理（API接続） ---
 const posts = ref<Article[]>([]);
 
 onMounted(async () => {
   try {
-    posts.value = await fetchArticles();
+    // 記事と質問を同時に取得
+    const [articles, questions] = await Promise.all([
+      fetchArticles(),
+      fetchQuestions(),
+    ]);
+
+    // 質問データを記事と同じ形式に変換（categoryを「質問」に設定）
+    const questionPosts: Article[] = questions.map((q) => ({
+      id: q.id,
+      user_id: q.user_id,
+      user_name: q.user_name,
+      title: q.title,
+      body: q.body,
+      content: '',         // Homeではタイトルのみ表示
+      author: q.user_name || '',
+      category: '質問',    // 質問は固定カテゴリー
+      likes: 0,
+      comments: 0,
+      created_at: q.created_at,
+    }));
+
+    // 記事と質問をマージ
+    posts.value = [...articles, ...questionPosts];
   } catch (e) {
     // エラー時は空配列のまま
-    // 必要に応じてエラーメッセージ表示も可
   }
 });
 
@@ -71,11 +93,10 @@ const filteredAndSortedPosts = computed(() => {
 const goToPost = () => {
   router.push("/post");
 };
-const goToDetail = (id: string) => {
-  router.push({ name: 'PostDetail', params: { id } });
+const goToDetail = (post: Article) => {
+  const type = post.category === '質問' ? 'question' : 'article';
+  router.push({ name: "PostDetail", params: { id: post.id }, query: { type } });
 };
-
-// 日付をTwitter風の相対時間で表示するフォーマット関数
 const formatDate = (dateStr: string | undefined) => {
   if (!dateStr) return '';
   // UTCとして解釈させるため、タイムゾーン表記がない場合は 'Z' を補完する
@@ -106,7 +127,6 @@ const formatDate = (dateStr: string | undefined) => {
 
 <template>
   <div class="full-screen-container">
-    
     <CommonHeader />
 
     <div class="content-wrapper">
@@ -139,11 +159,11 @@ const formatDate = (dateStr: string | undefined) => {
         </div>
 
         <div class="post-list">
-          <article 
-            v-for="post in filteredAndSortedPosts" 
-            :key="post.id" 
+          <article
+            v-for="post in filteredAndSortedPosts"
+            :key="post.id"
             class="post-card"
-            @click="goToDetail(post.id)"
+            @click="goToDetail(post)"
           >
             <div class="post-header">
               <span class="category-badge">{{ post.category }}</span>
@@ -152,7 +172,7 @@ const formatDate = (dateStr: string | undefined) => {
             <h3 class="post-title">{{ post.title }}</h3>
             <p class="post-summary">{{ post.content }}</p>
             <div class="post-footer">
-              <span class="author-name">👤 ID: {{ post.user_id }}</span>
+              <span class="author-name">👤 {{ post.user_name || '不明' }}</span>
               <div class="post-stats">
                 <span class="stat">💬 コメント {{ post.comments }}</span>
                 <span class="stat">👍 高評価 {{ post.likes }}</span>
@@ -165,7 +185,6 @@ const formatDate = (dateStr: string | undefined) => {
           </div>
         </div>
       </main>
-
     </div>
   </div>
 </template>
@@ -181,64 +200,6 @@ const formatDate = (dateStr: string | undefined) => {
   padding: 0;
 }
 
-.main-header {
-  width: 100%;
-  background-color: #fff;
-  border-bottom: 1px solid #ddd;
-  padding: 15px 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-inner {
-  width: 100%;
-  padding: 0 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-
-.logo {
-  font-size: 24px;
-  color: #007bff;
-  margin: 0;
-}
-
-.search-bar {
-  flex: 1;
-  max-width: 600px;
-  margin: 0 30px;
-  display: flex;
-  border: 2px solid #007bff;
-  border-radius: 4px;
-}
-
-.search-bar input {
-  flex: 1;
-  border: none;
-  padding: 10px;
-  outline: none;
-}
-
-.search-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0 20px;
-  cursor: pointer;
-}
-
-.post-button {
-  background-color: #ff5a5f;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-}
 
 /* 2カラムレイアウト設定 */
 .content-wrapper {

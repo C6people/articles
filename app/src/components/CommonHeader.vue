@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -9,32 +10,26 @@ const handlePostClick = () => {
     router.push('/post'); // 投稿画面のパスを指定
 };
 
-// 検索入力用の関数を追加（eventが暗黙的にanyみたいなエラーを消すためのもの）0507
-// event の型を明示的に指定
-const handleSearch = (event: Event) => {
-    // フォーム送信等のデフォルト動作を抑止
-    event.preventDefault?.();
-    const target = event.target as HTMLInputElement | null;
-    const keyword = (target?.value || '').trim();
-    console.log('入力されました:', keyword);
-    // 空文字でもホームへ移動（検索をリセット）
-    if (!keyword) {
-        router.push({ name: 'Home' });
-        return;
-    }
-    // Home に名前ベースで遷移し、クエリを渡す（/?q=...）
-    router.push({ name: 'Home', query: { q: keyword } });
+const searchQuery = ref('');
+
+// 検索実行ロジック
+const executeSearch = () => {
+    const keyword = searchQuery.value.trim();
+    if (!keyword) return;
+    // URLを /?q=キーワード に書き換えて移動する
+    router.push({ path: '/', query: { q: keyword } });
 };
 // -------------------------------------------------------
 
 // ----- プロフィール編集とログアウトの関数を追加0508 --------
 const goToEdit = () => {
     console.log("編集画面へ移動");
-    // router.push('/profile/edit');
+    router.push('/profile/edit');
 };
 
 const handleLogout = () => {
     console.log("ログアウト処理実行");
+    localStorage.removeItem('token');
     alert("ログアウトしました");
     router.push('/login'); // ログイン画面へ飛ばす
 };
@@ -55,32 +50,33 @@ const handleLogout = () => {
 
                 <div class="header-right-group">
                     <div class="search-bar">
-                        <span class="material-symbols-outlined">search</span>
                         <input 
+                            v-model="searchQuery"
                             type="text" 
-                            placeholder="キーワードから知恵を探す"
-                            @keyup.enter="handleSearch"
+                            placeholder="キーワードから記事を探す..."
+                            @keydown.enter="executeSearch"
                         >
+                        <button class="search-button" @click="executeSearch">🔍 検索</button>
                     </div>
                     <button class="post-button" @click="handlePostClick">+ 投稿する</button>
-                </div>
 
-                <!-- ログアウトボタン0508暫定的---------------- -->
-                <div class="user-menu-container">
-                    <div class="profile-icon">
-                        <div class="color-avatar">
-                            <span>U</span> 
+                    <!-- ログアウトボタン0508暫定的---------------- -->
+                    <div class="user-menu-container">
+                        <div class="profile-icon">
+                            <div class="color-avatar">
+                                <span>U</span> 
+                            </div>
+                        </div>
+
+                        <div class="dropdown-menu">
+                            <button @click="goToEdit">プロフィール編集</button>
+                            <!-- <hr /> -->
+                            <button @click="handleLogout" class="logout-btn">ログアウト</button>
                         </div>
                     </div>
-
-                    <div class="dropdown-menu">
-                        <button @click="goToEdit">プロフィール編集</button>
-                        <!-- <hr /> -->
-                        <button @click="handleLogout" class="logout-btn">ログアウト</button>
-                    </div>
+                    <!-- ↑0508プロフィール用---------------------------- -->
                 </div>
-                <!-- ↑0508プロフィール用---------------------------- -->
-                
+
             </div>
         </header>
     </div>
@@ -93,6 +89,10 @@ const handleLogout = () => {
 <style scoped>
 .article-header-wrapper {
     width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #ddd;
 }
 
 .site-header {
@@ -141,23 +141,38 @@ const handleLogout = () => {
 }
 
 .search-bar {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 30px;
     display: flex;
-    align-items: center;
-    border: 1.5px solid #2693B4;
+    border: 2px solid #007bff;
     border-radius: 4px;
-    padding: 4px 10px;
-    width: 100%;
-    max-width: 500px;
+    overflow: hidden;
 }
 
 .search-bar input {
+    flex: 1;
     border: none;
+    padding: 10px;
     outline: none;
-    width: 100%;
-    padding: 5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 14px;
+}
+
+.search-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.search-button:hover {
+    background-color: #0056b3;
 }
 
 .post-button {
