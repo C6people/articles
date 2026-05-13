@@ -12,3 +12,10 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class MyProfileResponse(BaseModel):
+    name: str
+    bio: str | None
+
+    class Config:
+        from_attributes = True
