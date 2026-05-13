@@ -56,17 +56,18 @@ const handleLogout = () => {
                             placeholder="キーワードから記事を探す..."
                             @keydown.enter="executeSearch"
                         >
-                        <button class="search-button" @click="executeSearch">🔍 検索</button>
+                        <button class="search-button" @click="executeSearch">検索　　</button>
                     </div>
                     <button class="post-button" @click="handlePostClick">+ 投稿する</button>
 
                     <!-- ログアウトボタン0508暫定的---------------- -->
                     <div class="user-menu-container">
-                        <div class="profile-icon">
+                        <!-- router-linkに変更0512 -->
+                        <router-link to="/profile" class="profile-icon">
                             <div class="color-avatar">
                                 <span>U</span> 
                             </div>
-                        </div>
+                        </router-link>
 
                         <div class="dropdown-menu">
                             <button @click="goToEdit">プロフィール編集</button>
@@ -145,7 +146,7 @@ const handleLogout = () => {
     max-width: 600px;
     margin: 0 30px;
     display: flex;
-    border: 2px solid #007bff;
+    border: 2px solid #2693B4;
     border-radius: 4px;
     overflow: hidden;
 }
@@ -159,7 +160,7 @@ const handleLogout = () => {
 }
 
 .search-button {
-    background-color: #007bff;
+    background-color: #2693B4;
     color: white;
     border: none;
     padding: 0 20px;
@@ -169,10 +170,10 @@ const handleLogout = () => {
     display: flex;
     align-items: center;
     gap: 4px;
+    transition: ease 0.3s;
 }
-
 .search-button:hover {
-    background-color: #0056b3;
+    background-color: #1b6a8c;
 }
 
 .post-button {
@@ -275,4 +276,85 @@ const handleLogout = () => {
     font-weight: bold;
 }
 /* -------------------------------------------------------- */
+/* レスポンシブ緊急（すべてimportantついてます） */
+ /* スプリット画面を想定した幅 */
+@media (max-width: 1024px) {
+    .search-bar {
+        flex: 1 !important;     /* 1を指定すると、余っている余白をすべて吸い取って伸びる */
+        max-width: 600px !important;
+        margin-right: 20px !important; 
+    }
+
+    .header-container {
+        justify-content: space-between !important; /* 両端に広げる */
+    }
+}
+@media (max-width: 768px) {
+    * {
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+        /* overflow: hidden !important; */
+    }
+    .header-container {
+        height: 80px !important; /* ヘッダーの高さを固定して小さくする */
+        padding: 0 15px !important; /* 左右に余白をつけました */
+        gap: 4px !important; /* 要素間の隙間をほぼゼロに */
+    }
+
+    .header-logo-group {
+        width: 10% !important; /* ロゴグループ全体も小さく */
+    }
+    .site-sub-title {
+        display: none !important; /* サブタイトルはスマホでは非表示にする */
+    }
+    .header-logo {
+        width: 100% !important; /* ロゴをアイコンサイズまで小さく */
+    }
+
+    .search-button {
+        /* 元の「検索」という文字を透明にして見えなくする */
+        color: transparent !important;
+
+        width: 40px !important;
+        min-width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        
+        /* 虫眼鏡アイコンを背景として表示する */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: 15px !important; /* アイコンの大きさ */
+        background-color: #2693B4 !important; 
+    }
+    /* バー本体 */
+    .search-bar {
+        flex: 1 !important;
+        min-width: 0 !important;
+        margin-right: 5px !important;
+        margin-left: 10px !important;
+    }
+    .search-bar input {
+        padding: 6px !important; /* 中の余白も削る */
+        font-size: 14px !important;
+    }
+    .header-right-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        margin-left: 0 !important;
+    }
+    .post-button {
+        min-width: 40px !important;
+        padding: 8px !important;
+    }
+
+    /* プロフィールアイコン：少しだけ小さく */
+    .profile-icon {
+        width: 30px !important;
+        height: 30px !important;
+        flex-shrink: 0 !important;
+    }
+
+}
 </style>
