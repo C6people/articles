@@ -3,8 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_db
 from src.cruds.article_comments import get_comments_by_article_id
 from src.schemas.article_comments import ArticleCommentResponse
-router = APIRouter()
 from uuid import UUID
+
+router = APIRouter()
 
 # GET API作成
 @router.get(

@@ -25,6 +25,7 @@ app.include_router(articles.router, tags=["articles"])
 app.include_router(question.router, tags=["questions"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(article_comments.router, tags=["article_comments"])
+
 @app.on_event("startup")
 async def startup():
     # 本番環境ではマイグレーションツール(alembic等)を使用しますが、
