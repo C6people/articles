@@ -4,12 +4,12 @@ import { useRoute, useRouter } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 import { fetchArticleById, type Article } from '@/api/articles';
 import { fetchQuestionById } from '@/api/questions';
+import CommentThread from '@/components/CommentThread.vue';
 
 const route = useRoute();
 const router = useRouter();
 const article = ref<Article | null>(null);
 const loading = ref(true);
-const searchQuery = ref("");
 
 onMounted(async () => {
   const id = route.params.id as string;
@@ -17,7 +17,6 @@ onMounted(async () => {
 
   try {
     if (type === 'question') {
-      // 質問APIから取得し、Article形式に変換
       const q = await fetchQuestionById(id);
       article.value = {
         id: q.id,
@@ -54,13 +53,8 @@ const formatDate = (dateStr: string | Date | undefined) => {
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
 };
 
-const backToHome = () => {
-  router.push("/");
-};
-
-const goToPost = () => {
-  router.push("/post");
-};
+const backToHome = () => router.push("/");
+const goToPost = () => router.push("/post");
 </script>
 
 <template>
@@ -68,7 +62,6 @@ const goToPost = () => {
     <CommonHeader />
 
     <div class="content-wrapper">
-      <!-- 左カラム：サイドバー -->
       <aside class="sidebar">
         <h2 class="sidebar-title">おすすめ記事一覧</h2>
         <ul class="recommended-list">
@@ -77,16 +70,15 @@ const goToPost = () => {
         </ul>
       </aside>
 
-      <!-- 右カラム：記事詳細 -->
       <main class="main-content">
         <div v-if="loading" class="loading-text">読み込み中...</div>
 
         <template v-else-if="article">
           <button class="back-button" @click="backToHome">
-            記事一覧へ戻る
+            ← 記事一覧へ戻る
           </button>
 
-          <div class="main-card">
+          <section class="main-card article-section">
             <h1 class="title">{{ article.title }}</h1>
             <div class="author-name">👤 {{ article.user_name || '不明' }}</div>
             <div class="category-badge">{{ article.category }}</div>
@@ -95,13 +87,16 @@ const goToPost = () => {
             <div class="body-content">
               {{ article.body }}
             </div>
-          </div>
+          </section>
+
+          <section class="main-card comment-section">
+            <h2 class="comment-count">コメント</h2>
+            <CommentThread />
+          </section>
         </template>
 
         <template v-else>
-          <button class="back-button" @click="backToHome">
-            記事一覧へ戻る
-          </button>
+          <button class="back-button" @click="backToHome">← 記事一覧へ戻る</button>
           <div class="main-card">
             <p>記事が見つかりませんでした。</p>
           </div>
@@ -112,100 +107,36 @@ const goToPost = () => {
 </template>
 
 <style scoped>
-/* 全画面コンテナ */
+/* レイアウト */
 .full-screen-container {
   width: 100%;
   min-height: 100vh;
   background-color: #f0f2f5;
   font-family: sans-serif;
-  margin: 0;
-  padding: 0;
 }
 
-/* 2カラムレイアウト (左250px + 右1fr) */
 .content-wrapper {
   display: grid;
   grid-template-columns: 250px 1fr;
-  width: 100%;
-  padding: 30px 40px;
-  box-sizing: border-box;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
   gap: 30px;
 }
 
-/* サイドバー */
-.sidebar {
-  padding-top: 60px;
-}
-
-.sidebar-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #333;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #999;
-  margin: 0 0 10px 0;
-}
-
-.recommended-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.recommended-list li {
-  padding: 20px 0;
-  border-bottom: 1px solid #ccc;
-  font-size: 14px;
-  color: #555;
-  cursor: pointer;
-  line-height: 1.5;
-}
-
-.recommended-list li:hover {
-  color: #2693B4;
-}
-
-/* 戻るボタン */
-.back-button {
-  display: inline-block;
-  padding: 8px 24px;
-  margin-bottom: 20px;
-  background: transparent;
-  border: 1px solid #2693B4;
-  color: #2693B4;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.back-button:hover {
-  background: #2693B4;
-  color: white;
-}
-
-/* 記事カード */
+/* 共通カードスタイル */
 .main-card {
-  width: 100%;
   background: white;
-  padding: 60px 50px;
+  padding: 40px;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  box-sizing: border-box;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
 }
 
+/* 記事詳細 */
 .title {
   font-size: 28px;
   font-weight: bold;
-  color: #333;
-  margin: 0 0 15px 0;
-  line-height: 1.4;
-}
-
-.author-name {
-  font-size: 15px;
-  color: #555;
   margin-bottom: 15px;
 }
 
@@ -213,30 +144,102 @@ const goToPost = () => {
   display: inline-block;
   background-color: #2693B4;
   color: white;
-  padding: 6px 18px;
-  border-radius: 999px;
+  padding: 4px 14px;
+  border-radius: 20px;
   font-size: 13px;
-  font-weight: bold;
-  margin-bottom: 25px;
-}
-
-.post-date {
-  font-size: 13px;
-  color: #999;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
 }
 
 .body-content {
   white-space: pre-wrap;
-  line-height: 2.0;
-  color: #444;
+  line-height: 1.8;
+  color: #333;
   font-size: 16px;
 }
 
-.loading-text {
-  text-align: center;
-  padding: 100px 0;
-  color: #999;
+/* コメント欄 */
+.comment-section {
+  padding-top: 30px;
+}
+
+.comment-count {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.new-comment-input {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.user-avatar {
+  font-size: 32px;
+}
+
+.input-container {
+  flex: 1;
+}
+
+.input-container input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  padding: 8px 0;
+  outline: none;
+}
+
+.input-container input:focus {
+  border-bottom: 2px solid #2693B4;
+}
+
+.input-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.submit-btn {
+  background: #2693B4;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* その他パーツ */
+.back-button {
+  background: none;
+  border: 1px solid #2693B4;
+  color: #2693B4;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.back-button:hover {
+  background: #2693B4;
+  color: white;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.recommended-list {
+  list-style: none;
+  padding: 0;
+}
+
+.recommended-list li {
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  cursor: pointer;
 }
 </style>
-
