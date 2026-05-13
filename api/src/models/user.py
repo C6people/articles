@@ -1,7 +1,7 @@
 """ユーザーモデル"""
 
 import uuid
-from sqlalchemy import Column, String, UUID, Integer
+from sqlalchemy import Column, String, UUID
 from src.database import Base
 
 
