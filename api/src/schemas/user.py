@@ -15,6 +15,7 @@ class UserResponse(BaseModel):
 
 class MyProfileResponse(BaseModel):
     name: str
+    role: str
     bio: str | None
 
     class Config:

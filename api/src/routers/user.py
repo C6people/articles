@@ -59,3 +59,24 @@ async def update_my_profile(
     )
 
     return updated_user
+
+@router.get(
+    "/users/{user_id}",
+    response_model=user_schema.MyProfileResponse
+)
+async def get_user_profile(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    user = await user_crud.get_user_by_id(
+        db=db,
+        user_id=user_id
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="ユーザーが見つかりません"
+        )
+
+    return user
