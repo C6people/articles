@@ -39,3 +39,17 @@ async def get_user_by_id(
     )
 
     return result.scalar_one_or_none()
+
+async def update_my_profile(
+    db: AsyncSession,
+    user: User,
+    profile_in: user_schema.MyProfileUpdate
+) -> User:
+    """自己紹介更新"""
+
+    user.bio = profile_in.bio
+
+    await db.commit()
+    await db.refresh(user)
+
+    return user

@@ -19,3 +19,6 @@ class MyProfileResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class MyProfileUpdate(BaseModel):
+    bio: str | None
