@@ -1,14 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_db
+from src.core.deps import get_current_user_id
 from src.cruds.article_comments import get_comments_by_article_id
+from src.cruds.article_comments import create_comment
 from src.schemas.article_comments import ArticleCommentResponse
 from src.schemas.article_comments import CommentCreate
-
-from src.cruds.article_comments import (
-    get_comments_by_article_id,
-    create_comment
-)
 from uuid import UUID
 router = APIRouter()
 
@@ -35,7 +32,7 @@ async def get_comments(
 
 # POST　API作成
 @router.post(
-    "/",
+    "/articles/{article_id}/comments",
 
     response_model=ArticleCommentResponse
 )
@@ -48,9 +45,7 @@ async def post_comment(
     db: AsyncSession = Depends(get_db)
 ):
 
-    # 仮user_id
-    # 後でJWTから取得
-    user_id = 1
+    user_id = Depends(get_current_user_id)  # ユーザーIDを取得する関数を呼び出す（例: JWTトークンから）
 
     comment = await create_comment(
         db=db,
