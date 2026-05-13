@@ -4,7 +4,6 @@ from .database import engine, Base
 from .routers import articles, question, auth
 from src.routers import article_comments 
 
-
 app = FastAPI(
     title="Articles API",
     description="API for the Articles application",
@@ -41,3 +40,4 @@ async def read_root():
 @app.get("/ping")
 async def ping():
     return {"status": "ok"}
+

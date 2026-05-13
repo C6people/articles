@@ -3,8 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database import get_db
 from src.cruds.article_comments import get_comments_by_article_id
 from src.schemas.article_comments import ArticleCommentResponse
-from uuid import UUID
+from src.schemas.article_comments import CommentCreate
 
+from src.cruds.article_comments import (
+    get_comments_by_article_id,
+    create_comment
+)
+from uuid import UUID
 router = APIRouter()
 
 # GET API作成
@@ -27,3 +32,34 @@ async def get_comments(
         db,
         article_id
     )
+
+# POST　API作成
+@router.post(
+    "/",
+
+    response_model=ArticleCommentResponse
+)
+async def post_comment(
+
+    # request body
+    request: CommentCreate,
+
+    # DB
+    db: AsyncSession = Depends(get_db)
+):
+
+    # 仮user_id
+    # 後でJWTから取得
+    user_id = 1
+
+    comment = await create_comment(
+        db=db,
+
+        article_id=request.article_id,
+
+        user_id=user_id,
+
+        body=request.body
+    )
+
+    return comment

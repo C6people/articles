@@ -1,10 +1,10 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.article import ArticleComment
-import uuid
+from uuid import UUID
 async def get_comments_by_article_id(       # 記事IDからコメント一覧を取得する関数
     db: AsyncSession,
-    article_id: uuid.UUID
+    article_id: UUID
 ):
 
     # SQL実行
@@ -16,3 +16,28 @@ async def get_comments_by_article_id(       # 記事IDからコメント一覧�
     )
     # 結果を配列で返す
     return result.scalars().all()
+
+async def create_comment(   # コメント作成
+    db: AsyncSession,
+    article_id: UUID,
+    user_id:    UUID,
+    body:       str
+):
+
+    # model生成
+    comment = ArticleComment(
+        article_id=article_id,
+        user_id=user_id,
+        body=body
+    )
+
+    # DB追加
+    db.add(comment)
+
+    # 保存
+    await db.commit()
+
+    # 最新状態取得
+    await db.refresh(comment)
+
+    return comment
