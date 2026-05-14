@@ -14,57 +14,60 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # diff取得のため全履歴が必要
+          fetch-depth: 0
 
       # PRのdiffを取得
       - name: Get PR diff
         run: |
           git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
-          # diffが大きすぎるとAPI制限に引っかかるので先頭だけ
           head -c 30000 pr_diff.txt > pr_diff_trimmed.txt
+          echo "=== diff size ==="
+          wc -c pr_diff_trimmed.txt
 
       # Gemini APIでレビュー
       - name: Run Gemini Review
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
-          DIFF=$(cat pr_diff_trimmed.txt | jq -Rsa .)
+          # diffの内容を読み込み
+          DIFF_CONTENT=$(cat pr_diff_trimmed.txt)
 
-          PROMPT="あなたはコードレビュアーです。以下のPRのdiffをレビューしてください。
-          - 致命的なバグや型の不一致があれば指摘してください
-          - セキュリティ上の問題があれば指摘してください
-          - 改善提案があれば簡潔に書いてください
-          - 問題がなければ「問題なし」と書いてください
-          - 日本語で回答してください
-
-          diff:
-          "
-
-          REQUEST_BODY=$(jq -n \
-            --arg prompt "$PROMPT" \
-            --arg diff "$DIFF" \
+          # JSONリクエストを組み立て（jqで安全にエスケープ）
+          jq -n \
+            --arg diff "$DIFF_CONTENT" \
             '{
               "contents": [{
-                "parts": [{"text": ($prompt + $diff)}]
+                "parts": [{
+                  "text": ("あなたはコードレビュアーです。以下のPRのdiffをレビューしてください。\n- 致命的なバグや型の不一致があれば指摘してください\n- セキュリティ上の問題があれば指摘してください\n- 改善提案があれば簡潔に書いてください\n- 問題がなければ「問題なし」と書いてください\n- 日本語で回答してください\n\ndiff:\n" + $diff)
+                }]
               }],
               "generationConfig": {
                 "temperature": 0.2,
                 "maxOutputTokens": 2048
               }
-            }')
+            }' > request.json
 
-          RESPONSE=$(curl -s \
+          # API呼び出し
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o response.json \
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_API_KEY}" \
             -H "Content-Type: application/json" \
-            -d "$REQUEST_BODY")
+            -d @request.json)
 
-          # レスポンスからテキスト抽出
-          REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "レビューの取得に失敗しました"')
+          echo "=== HTTP status: $HTTP_CODE ==="
 
-          # マークダウンファイルに書き出し
-          echo "## 🤖 AI Review (Gemini)" > ai-review.md
-          echo "" >> ai-review.md
-          echo "$REVIEW" >> ai-review.md
+          # エラー時はレスポンス全体を出力（APIキーは表示されない）
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "=== API Error Response ==="
+            cat response.json
+            echo "## 🤖 AI Review (Gemini)" > ai-review.md
+            echo "" >> ai-review.md
+            echo "⚠️ APIエラー (HTTP $HTTP_CODE)" >> ai-review.md
+          else
+            REVIEW=$(jq -r '.candidates[0].content.parts[0].text // "レビューの取得に失敗しました"' response.json)
+            echo "## 🤖 AI Review (Gemini)" > ai-review.md
+            echo "" >> ai-review.md
+            echo "$REVIEW" >> ai-review.md
+          fi
 
       # PRにコメント投稿
       - name: Post review comment
