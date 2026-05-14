@@ -3,23 +3,26 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 
-// script setup 内に追加
-const currentTab = ref('記事'); // 最初は「記事」を選択状態にする
-
+// --------------------------
+//  自己紹介用（ユーザネーム及び自己紹介文ダミーデータ）
 const user = ref({
     name: '1350132',
     bio: '佐藤先生のクラスでネットワークを学んでいます。コンテナ技術を用いた環境の構築をしています。テストとか資格の対策の記事を書いていきます。'
-    // bio: '' // 自己紹介が未登録の状態を試すときは、ここを空文字にしてください。
+    // 空データ確認用↓
+    // bio: ''
 });
+// --------------------------
+// タブ切り替え用の初期値設定
+const currentTab = ref('記事');
 
-// データの形（型）を定義
+// タブ用記事管理ダミーデータ
 interface ContentItem {
     id: number;
     title: string;
 }
-
-// --------------------------
-// 各タブ用のデータ。[] の中にデータがあれば表示、なければ「なし」が出ます。
+// 各タブ用のデータ。[] の中にデータがあれば表示、なければ「XXはありません」が出ます。
+// データがない場合を確認したいときは{}の中身を空にしてください。
+// 記事用ダミーデータ
 const articles = ref<ContentItem[]>([
     { id: 1, title: 'ESP32でLEDを光らせてみる。2年後期と3年前期向け。ESP32キットを持っている学生向け' },
     { id: 2, title: 'ゾンビ化したKubernetesを殺す' },
@@ -27,20 +30,18 @@ const articles = ref<ContentItem[]>([
     { id: 4, title: '【2024年版】これだけやっとけ！応用情報技術者試験対策' },
     { id: 5, title: '【2024年版】これだけやっとけ！AWS認定ソリューションアーキテクト試験対策' },
 ]);
-
-// const questions = ref<ContentItem[]>([
-//     { id: 1, title: 'Vue.jsのタブ切り替えがうまくいきません' } 
-// ]);
-
-const likes = ref<ContentItem[]>([
-    { id: 1, title: '2年生Linuxのテスト過去問こんな感じ' }
+// 質問用ダミーデータ
+const questions = ref<ContentItem[]>([
+    { id: 1, title: 'Vue.jsのタブ切り替えがうまくいきません' } ,
+    { id: 2, title: 'Dockerでコンテナが起動しません' },
+    { id: 3, title: 'KubernetesのPodがPending状態から動きません' }
 ]);
-
-// データが入っていない状態を試すときは、上のように[]にしてみてください。
-// const articles = ref<any[]>([]);
-    const questions = ref<any[]>([]);
-// const likes = ref<any[]>([]);
-// --------------------------
+// いいね用ダミーデータ
+const likes = ref<ContentItem[]>([
+    { id: 1, title: '2年生Linuxのテスト過去問こんな感じ' },
+    { id: 2, title: '【2025年度DW用】学内用の過去問一覧サイトを作ってみました'},
+    { id: 3, title: '1年生の皆さんへ：来年のコース選択のおすすめ！'}
+]);
 </script>
 
 <template>
@@ -147,10 +148,9 @@ const likes = ref<ContentItem[]>([
     justify-content: center;
     max-width: 1200px;
     margin: 0 auto;
-    gap: 50px;
     padding: 40px 100px;
-    align-items: flex-start;
     gap: 100px; /* メイン（記事）とサイド（パスワード）の間のスペース */
+    align-items: flex-start;
 }
 .main-content {
     min-width: 0; /* Flexの子要素がはみ出さないようにするための魔法の1行 */
@@ -195,15 +195,14 @@ const likes = ref<ContentItem[]>([
     padding: 24px;
     margin-bottom: 24px;
 }
-
 /* --- 自己紹介 --- */
-/* .bio-card {
-  max-width: 500px; /* 自己紹介カードの横幅 */
+/* --- 自己紹介見出し --- */
 .bio-label { 
     font-weight: bold;
     margin-bottom: 8px;
     font-size: 14px;
 }
+/* --- 自己紹介本文 --- */
 .bio-text { 
     font-size: 14px;
     line-height: 1.6;
@@ -214,6 +213,7 @@ const likes = ref<ContentItem[]>([
 /* タブ全体のコンテナ */
 .profile-tabs {
     display: flex;
+    justify-content: center; /* 真ん中のほうが何となくいいのでタブを中央に配置しました */
     gap: 0; /* ボタン同士をくっつける */
     margin: 30px 0 0; /* 下線とくっつけるために下マージンは0 */
     border-bottom: 2px solid #2693B4;
