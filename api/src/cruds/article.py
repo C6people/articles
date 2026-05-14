@@ -32,3 +32,17 @@ async def create_article(db: AsyncSession, article_in: article_schema.ArticleCre
     # Eagerly load the user so it can be returned safely
     result = await db.execute(select(Article).options(selectinload(Article.user)).where(Article.id == new_article.id))
     return result.scalar_one()
+
+# user_idから記事を取得
+async def get_articles_by_user_id(
+    db: AsyncSession,
+    user_id: UUID
+):
+    result = await db.execute(
+        select(Article)
+        .options(selectinload(Article.user))
+        .where(Article.user_id == user_id)
+        .order_by(Article.created_at.desc())
+    )
+
+    return result.scalars().all()
