@@ -14,6 +14,7 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 class MyProfileResponse(BaseModel):
+    id: UUID
     name: str
     role: str
     bio: str | None
