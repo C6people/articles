@@ -1,0 +1,73 @@
+name: AI-Review-Gemini
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # diff取得のため全履歴が必要
+
+      # PRのdiffを取得
+      - name: Get PR diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
+          # diffが大きすぎるとAPI制限に引っかかるので先頭だけ
+          head -c 30000 pr_diff.txt > pr_diff_trimmed.txt
+
+      # Gemini APIでレビュー
+      - name: Run Gemini Review
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          DIFF=$(cat pr_diff_trimmed.txt | jq -Rsa .)
+
+          PROMPT="あなたはコードレビュアーです。以下のPRのdiffをレビューしてください。
+          - 致命的なバグや型の不一致があれば指摘してください
+          - セキュリティ上の問題があれば指摘してください
+          - 改善提案があれば簡潔に書いてください
+          - 問題がなければ「問題なし」と書いてください
+          - 日本語で回答してください
+
+          diff:
+          "
+
+          REQUEST_BODY=$(jq -n \
+            --arg prompt "$PROMPT" \
+            --arg diff "$DIFF" \
+            '{
+              "contents": [{
+                "parts": [{"text": ($prompt + $diff)}]
+              }],
+              "generationConfig": {
+                "temperature": 0.2,
+                "maxOutputTokens": 2048
+              }
+            }')
+
+          RESPONSE=$(curl -s \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$REQUEST_BODY")
+
+          # レスポンスからテキスト抽出
+          REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "レビューの取得に失敗しました"')
+
+          # マークダウンファイルに書き出し
+          echo "## 🤖 AI Review (Gemini)" > ai-review.md
+          echo "" >> ai-review.md
+          echo "$REVIEW" >> ai-review.md
+
+      # PRにコメント投稿
+      - name: Post review comment
+        uses: mshick/add-pr-comment@v2
+        with:
+          message-path: ai-review.md
