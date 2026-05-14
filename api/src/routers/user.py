@@ -8,6 +8,11 @@ from src.core.deps import get_current_user_id
 import src.schemas.user as user_schema
 import src.cruds.user as user_crud
 
+import src.schemas.article as article_schema
+import src.cruds.article as article_crud
+import src.schemas.question as question_schema
+import src.cruds.question as question_crud
+
 router = APIRouter()
 
 
@@ -80,3 +85,35 @@ async def get_user_profile(
         )
 
     return user
+
+# user_idから記事を取得
+@router.get(
+    "/users/{user_id}/articles",
+    response_model=list[article_schema.ArticleResponse]
+)
+async def get_user_articles(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    articles = await article_crud.get_articles_by_user_id(
+        db,
+        user_id
+    )
+
+    return articles
+
+# user_idから質問を取得
+@router.get(
+    "/users/{user_id}/questions",
+    response_model=list[question_schema.QuestionResponse]
+)
+async def get_user_questions(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    questions = await question_crud.get_questions_by_user_id(
+        db,
+        user_id
+    )
+
+    return questions
