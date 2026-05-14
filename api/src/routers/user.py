@@ -7,6 +7,8 @@ from src.database import get_db
 
 import src.schemas.article as article_schema
 import src.cruds.article as article_crud
+import src.schemas.question as question_schema
+import src.cruds.question as question_crud
 
 router = APIRouter()
 
@@ -24,3 +26,18 @@ async def get_user_articles(
     )
 
     return articles
+
+@router.get(
+    "/users/{user_id}/questions",
+    response_model=list[question_schema.QuestionResponse]
+)
+async def get_user_questions(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    questions = await question_crud.get_questions_by_user_id(
+        db,
+        user_id
+    )
+
+    return questions
