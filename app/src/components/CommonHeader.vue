@@ -56,7 +56,7 @@ const handleLogout = () => {
                             placeholder="キーワードから記事を探す..."
                             @keydown.enter="executeSearch"
                         >
-                        <button class="search-button" @click="executeSearch">検索　　</button>
+                        <button class="search-button" @click="executeSearch">検索</button>
                     </div>
                     <button class="post-button" @click="handlePostClick">+ 投稿する</button>
 
@@ -163,7 +163,7 @@ const handleLogout = () => {
     background-color: #2693B4;
     color: white;
     border: none;
-    padding: 0 20px;
+    padding: 0 30px 0 30px;
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
