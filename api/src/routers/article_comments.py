@@ -36,25 +36,18 @@ async def get_comments(
 
     response_model=ArticleCommentResponse
 )
+
 async def post_comment(
-
-
-    # request body
+    article_id: UUID,
     request: CommentCreate,
-
-    # DB
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    user_id: UUID = Depends(get_current_user_id) # ログインユーザーのIDを取得
 ):
-
-    user_id = Depends(get_current_user_id)  # ユーザーIDを取得する関数を呼び出す（例: JWTトークンから）
-
+    
     comment = await create_comment(
         db=db,
-
         article_id=request.article_id,
-
         user_id=user_id,
-
         body=request.body
     )
 

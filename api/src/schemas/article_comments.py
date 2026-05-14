@@ -21,5 +21,3 @@ class CommentCreate(BaseModel): # コメント投稿用のスキーマ
     article_id: UUID   # コメントを投稿する記事のID
     body: str          # コメントの内容
 
-    class Config:  # ORMモデルからの変換するための設定
-        from_attributes = True
