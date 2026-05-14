@@ -117,7 +117,7 @@ function toggleCollapse() {
 .comment-main {
   background: #fff;
   border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
   padding: 16px 20px 10px 20px;
   margin-bottom: 4px;
   position: relative;

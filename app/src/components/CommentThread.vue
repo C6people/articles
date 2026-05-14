@@ -115,7 +115,7 @@ function handleReply(parentId: number, text: string) {
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 8px 18px;
+  padding: 13px 18px;
   font-size: 15px;
   cursor: pointer;
   min-width: 80px;
