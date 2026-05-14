@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from uuid import UUID
 
 from src.models.user import User
 import src.schemas.user as user_schema
@@ -26,3 +27,29 @@ async def create_user(db: AsyncSession, user_in: user_schema.UserCreate) -> User
     await db.refresh(new_user)
     
     return new_user
+
+async def get_user_by_id(
+    db: AsyncSession,
+    user_id: UUID
+) -> User | None:
+    """IDでユーザー取得"""
+
+    result = await db.execute(
+        select(User).where(User.id == user_id)
+    )
+
+    return result.scalar_one_or_none()
+
+async def update_my_profile(
+    db: AsyncSession,
+    user: User,
+    profile_in: user_schema.MyProfileUpdate
+) -> User:
+    """自己紹介更新"""
+
+    user.bio = profile_in.bio
+
+    await db.commit()
+    await db.refresh(user)
+
+    return user

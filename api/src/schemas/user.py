@@ -12,3 +12,15 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class MyProfileResponse(BaseModel):
+    id: UUID
+    name: str
+    role: str
+    bio: str | None
+
+    class Config:
+        from_attributes = True
+
+class MyProfileUpdate(BaseModel):
+    bio: str | None

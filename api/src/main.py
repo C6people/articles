@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routers import articles, question, auth
+from .routers import articles, question, auth, user
 
 app = FastAPI(
     title="Articles API",
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(articles.router, tags=["articles"])
 app.include_router(question.router, tags=["questions"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(user.router, tags=["users"])
 
 @app.on_event("startup")
 async def startup():
