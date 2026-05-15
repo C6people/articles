@@ -7,6 +7,7 @@ import CommonHeader from '@/components/CommonHeader.vue';
 // --------------------------
 //  自己紹介用
 const user = ref({
+    id: '',
     name: '',
     bio: ''
     // 空データ確認用↓
@@ -16,32 +17,22 @@ const user = ref({
 // タブ切り替え用の初期値設定
 const currentTab = ref('記事');
 
-// タブ用記事管理ダミーデータ
+// タブ用記事管理データ
 interface ContentItem {
-    id: number;
+    id: string;
     title: string;
 }
 // 各タブ用のデータ。[] の中にデータがあれば表示、なければ「XXはありません」が出ます。
 // データがない場合を確認したいときは{}の中身を空にしてください。
-// 記事用ダミーデータ
-const articles = ref<ContentItem[]>([
-    { id: 1, title: 'ESP32でLEDを光らせてみる。2年後期と3年前期向け。ESP32キットを持っている学生向け' },
-    { id: 2, title: 'ゾンビ化したKubernetesを殺す' },
-    { id: 3, title: '【2024年版】これだけやっとけ！基本情報技術者試験対策' },
-    { id: 4, title: '【2024年版】これだけやっとけ！応用情報技術者試験対策' },
-    { id: 5, title: '【2024年版】これだけやっとけ！AWS認定ソリューションアーキテクト試験対策' },
-]);
-// 質問用ダミーデータ
-const questions = ref<ContentItem[]>([
-    { id: 1, title: 'Vue.jsのタブ切り替えがうまくいきません' } ,
-    { id: 2, title: 'Dockerでコンテナが起動しません' },
-    { id: 3, title: 'KubernetesのPodがPending状態から動きません' }
-]);
+// 記事用
+const articles = ref<ContentItem[]>([]);
+// 質問用
+const questions = ref<ContentItem[]>([]);
 // いいね用ダミーデータ
 const likes = ref<ContentItem[]>([
-    { id: 1, title: '2年生Linuxのテスト過去問こんな感じ' },
-    { id: 2, title: '【2025年度DW用】学内用の過去問一覧サイトを作ってみました'},
-    { id: 3, title: '1年生の皆さんへ：来年のコース選択のおすすめ！'}
+    { id: '1', title: '2年生Linuxのテスト過去問こんな感じ' },
+    { id: '2', title: '【2025年度DW用】学内用の過去問一覧サイトを作ってみました'},
+    { id: '3', title: '1年生の皆さんへ：来年のコース選択のおすすめ！'}
 ]);
 
 // --------------------------
@@ -66,8 +57,37 @@ const fetchMyProfile = async () => {
     }
 };
 
-onMounted(() => {
-    fetchMyProfile();
+const fetchUserArticles = async () => {
+    try {
+        const response = await axios.get(
+            `http://localhost:8000/users/${user.value.id}/articles`
+        );
+
+        articles.value = response.data;
+
+    } catch (error) {
+        console.error('記事取得失敗', error);
+    }
+};
+
+const fetchUserQuestions = async () => {
+    try {
+        const response = await axios.get(
+            `http://localhost:8000/users/${user.value.id}/questions`
+        );
+
+        questions.value = response.data;
+
+    } catch (error) {
+        console.error('質問取得失敗', error);
+    }
+};
+
+onMounted(async () => {
+    await fetchMyProfile();
+
+    await fetchUserArticles();
+    await fetchUserQuestions();
 });
 
 </script>
