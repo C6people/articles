@@ -144,8 +144,13 @@ onMounted(async () => {
     <CommonHeader />
     <div class="profile-page-wrapper">
         <main class="profile-container">
-    
+
             <div class="main-content">
+                <div class="profile-wrapper">
+                    <router-link to="/" class="back-link">
+                        ←ホームに戻る
+                    </router-link>
+                </div>
                 <div class="user-header">
                     <h1><strong>{{ user.name }}</strong> さんのプロフィール</h1>
                     <!--   編集モーダルを開くためのボタン。クリックするとisEditingがtrueになり、モーダルが表示される仕組みです。 -->
@@ -228,7 +233,7 @@ onMounted(async () => {
             </aside>
 
         </main>
-
+        
         <!-- 編集モーダル -->
         <!-- isEditingがtrueの時に表示なのでmodal-container以外（背景半透明）に触れると閉じるようになっています -->
         <div v-if="isEditing" class="modal-mask" @click.self="isEditing = false">
@@ -257,6 +262,35 @@ onMounted(async () => {
     font-family: sans-serif;
     color: #333;
 }
+/* --- ホームに戻るボタン --- */
+/* 親要素 */
+.profile-wrapper {
+    position: relative; /* 子の絶対配置の基準にする */
+    margin-bottom: 50px;
+}
+
+/* ホームに戻るリンク */
+.back-link {
+    position: absolute; /* 親要素に対して絶対配置 */
+    gap: 4px;
+    color: #2693B4;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    /* 下線の準備 */
+    background-image: linear-gradient(#2693B4, #2693B4);
+    background-position: 0% 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    transition: background-size 0.4s ease;
+}
+
+.back-link:hover {
+    opacity: 0.7;
+    background-size: 100% 2px; /* ホバーで端まで伸びる */
+}
+/* --- ↑ホームに戻るボタン --- */
+
 /* ---  メインレイアウト --- */
 .profile-container {
     display: flex;
@@ -267,6 +301,7 @@ onMounted(async () => {
     gap: 100px; /* メイン（記事）とサイド（パスワード）の間のスペース */
     align-items: flex-start;
 }
+
 .main-content {
     min-width: 0; /* Flexの子要素がはみ出さないようにするための魔法の1行 */
     flex: 1;
@@ -415,7 +450,7 @@ onMounted(async () => {
 /* 右のサイドバー */
 .sidebar {
     width: 320px;
-    margin-top: 130px; /* 微調整の集大成 さわるな */
+    margin-top: 180px; /* 微調整の集大成 さわるな */
 }
 /* パスワード変更・退会 */
 .sticky-container {
@@ -535,6 +570,9 @@ onMounted(async () => {
 
 /* 画面幅が 768px 以下（タブレットやスマホ）になったら適用 */
 @media (max-width: 768px) {
+    .profile-wrapper {
+    padding-top: 10px;  /* リンクの分だけ上に隙間を作る */
+    }
     .profile-container {
         flex-direction: column; /* 「左と右」を「上と下」に並び替える */
         align-items: stretch;   /* 横幅いっぱいまで広げる */
