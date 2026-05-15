@@ -44,11 +44,12 @@ async def post_comment(
     user_id: UUID = Depends(get_current_user_id) # ログインユーザーのIDを取得
 ):
     
+    # modelの生成
     comment = await create_comment(
         db=db,
-        article_id=request.article_id,
+        article_id=article_id,       # URLから取得したものを使う
         user_id=user_id,
-        body=request.body
+        body=request.body,
+        parent_id=request.parent_id  # 追加
     )
-
     return comment

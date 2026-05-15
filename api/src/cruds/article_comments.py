@@ -21,13 +21,15 @@ async def create_comment(   # コメント作成
     db: AsyncSession,
     article_id: UUID,
     user_id:    UUID,
-    body:       str
+    body:       str,
+    parent_id:  UUID | None = None,
 ):
 
     # model生成
     comment = ArticleComment(
         article_id=article_id,
         user_id=user_id,
+        parent_id=parent_id,
         body=body
     )
 
