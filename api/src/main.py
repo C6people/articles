@@ -22,13 +22,9 @@ app.add_middleware(
 # ルーターの登録
 app.include_router(articles.router, tags=["articles"])
 app.include_router(question.router, tags=["questions"])
-<<<<<<< feature/api-coments
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(article_comments.router, tags=["article_comments"])
-=======
->>>>>>> main
 app.include_router(user.router, tags=["users"])
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(article_comments.router, tags=["article_comments"])
 
 
 @app.on_event("startup")
