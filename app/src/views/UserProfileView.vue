@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 import CommonHeader from '@/components/CommonHeader.vue';
 
 // ルーターのインスタンスを取得
