@@ -22,11 +22,18 @@ const executeSearch = () => {
 // -------------------------------------------------------
 
 // ----- プロフィール編集とログアウトの関数を追加0508 --------
-const goToEdit = () => {
-    console.log("編集画面へ移動");
-    router.push('/profile/edit');
-};
+// const goToEdit = () => {
+//     console.log("編集画面へ移動");
+//     router.push('/profile/edit');
+// };
 
+// プロフィール編集からプロフィールを表示に変更0515
+// --- プロフィールを表示0515 ---
+const goToPlofile = () => {
+    console.log("プロフィール画面へ移動");
+    router.push('/profile');
+};
+// ----------------------------------------------------
 const handleLogout = () => {
     console.log("ログアウト処理実行");
     localStorage.removeItem('token');
@@ -70,7 +77,7 @@ const handleLogout = () => {
                         </router-link>
 
                         <div class="dropdown-menu">
-                            <button @click="goToEdit">プロフィール編集</button>
+                            <button @click="goToPlofile">プロフィールを表示</button>
                             <!-- <hr /> -->
                             <button @click="handleLogout" class="logout-btn">ログアウト</button>
                         </div>
