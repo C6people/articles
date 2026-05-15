@@ -31,3 +31,17 @@ async def create_question(db: AsyncSession, question_in: question_schema.Questio
     # Eagerly load the user so it can be returned safely
     result = await db.execute(select(Question).options(selectinload(Question.user)).where(Question.id == new_question.id))
     return result.scalar_one()
+
+# user_idから質問を取得
+async def get_questions_by_user_id(
+    db: AsyncSession,
+    user_id: UUID
+):
+    result = await db.execute(
+        select(Question)
+        .options(selectinload(Question.user))
+        .where(Question.user_id == user_id)
+        .order_by(Question.created_at.desc())
+    )
+
+    return result.scalars().all()
