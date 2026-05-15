@@ -12,3 +12,5 @@ class User(Base):
     name = Column(String, nullable=False, unique=True, comment="ユーザー名（ログイン用）")
     role = Column(String, nullable=False, comment="'student' または 'teacher'")
     password_hash = Column(String, nullable=False, comment="ハッシュ化されたパスワード")
+    # ユーザー情報追加
+    bio = Column(String, nullable=True, comment="自己紹介")
