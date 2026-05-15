@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 import CommonHeader from '@/components/CommonHeader.vue';
 
 // --------------------------
-//  自己紹介用（ユーザネーム及び自己紹介文ダミーデータ）
+//  自己紹介用
 const user = ref({
-    name: '1350132',
-    bio: '佐藤先生のクラスでネットワークを学んでいます。コンテナ技術を用いた環境の構築をしています。テストとか資格の対策の記事を書いていきます。'
+    name: '',
+    bio: ''
     // 空データ確認用↓
     // bio: ''
 });
@@ -42,6 +43,33 @@ const likes = ref<ContentItem[]>([
     { id: 2, title: '【2025年度DW用】学内用の過去問一覧サイトを作ってみました'},
     { id: 3, title: '1年生の皆さんへ：来年のコース選択のおすすめ！'}
 ]);
+
+// --------------------------
+
+const fetchMyProfile = async () => {
+    try {
+        const token = localStorage.getItem('token');
+
+        const response = await axios.get(
+            'http://localhost:8000/users/me',
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        user.value = response.data;
+
+    } catch (error) {
+        console.error('プロフィール取得失敗', error);
+    }
+};
+
+onMounted(() => {
+    fetchMyProfile();
+});
+
 </script>
 
 <template>
