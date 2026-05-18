@@ -5,10 +5,10 @@
     </div>
     <div class="comment-main">
       <div class="comment-header">
-        <span class="comment-user">{{ comment.user }}</span>
+        <span class="comment-user">{{ comment.user_id }}</span>
         <span class="comment-date">{{ comment.created_at }}</span>
       </div>
-      <div class="comment-body">{{ comment.text }}</div>
+      <div class="comment-body">{{ comment.body }}</div>
       <div class="comment-actions">
         <button class="reply-btn" @click="toggleReply">返信</button>
         <button v-if="comment.replies.length" class="toggle-btn" @click="toggleCollapse">
@@ -28,7 +28,7 @@
           :key="reply.id"
           :comment="reply"
           :level="level + 1"
-          @reply="$emit('reply', reply.id, $event)"
+          @reply="(parentId: string, text: string) => $emit('reply', parentId, text)"
         />
       </div>
     </transition>
@@ -38,22 +38,24 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-// 1. このコンポーネントが扱う「コメント1件分」の型を定義
-interface CommentType {
-  id: number;
-  user: string;
-  text: string;
+// ThreadCommentの構造に合わせた型定義
+export interface CommentType {
+  id: string;
+  article_id?: string;
+  question_id?: string;
+  user_id: string;
+  parent_id: string | null;
+  body: string;
   created_at: string;
-  replies: CommentType[]; // 返信も同じ形をしている
+  user_name?: string | null;
+  replies: CommentType[];
 }
 
-// 2. props（親から受け取るデータ）に型を設定
-// これにより、テンプレートの comment.user が「確実に存在する」と認識されます
 const props = withDefaults(defineProps<{
   comment: CommentType;
   level?: number;
 }>(), {
-  level: 0  // もし指定がなければ 0 を代入する
+  level: 0
 });
 
 const emit = defineEmits(['reply']);
@@ -67,7 +69,6 @@ function toggleReply() {
 }
 
 function sendReply() {
-  // props.comment.id と書いたときにエラーが出なくなります
   if (replyText.value.trim() && props.comment) {
     emit('reply', props.comment.id, replyText.value);
     replyText.value = '';
@@ -82,7 +83,6 @@ function toggleCollapse() {
 </script>
 
 <style scoped>
-/* 階層インデント */
 .comment {
   margin-top: 24px;
   position: relative;

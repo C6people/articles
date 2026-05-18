@@ -1,7 +1,13 @@
 <template>
   <div class="comment-thread">
     <form class="add-comment-form" @submit.prevent="addComment">
-      <textarea v-model="newCommentText" placeholder="記事にコメントを追加..." rows="2" />
+      <textarea 
+        ref="textareaRef"
+        v-model="newCommentText" 
+        placeholder="記事にコメントを追加..." 
+        rows="1"
+        @input="adjustHeight"
+      />
       <button type="submit" :disabled="!newCommentText.trim()">コメント</button>
     </form>
     <div class="comment-list">
@@ -17,77 +23,101 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, watch, nextTick } from 'vue';
+import { useRoute } from 'vue-router';
 import Comment from './Comment.vue';
+import { fetchComments, postComment, type CommentResponse } from '@/api/comments';
 
-// モックデータ
-const comments = ref([
-  {
-    id: 1,
-    user: '田中太郎',
-    text: 'とても参考になりました！',
-    created_at: '2026-05-10 12:00',
-    replies: [
-      {
-        id: 2,
-        user: '管理人',
-        text: 'コメントありがとうございます！',
-        created_at: '2026-05-10 12:10',
-        replies: [
-          {
-            id: 3,
-            user: '田中太郎',
-            text: 'また質問させてください！',
-            created_at: '2026-05-10 12:15',
-            replies: []
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 4,
-    user: '山田花子',
-    text: '記事の内容が分かりやすかったです。',
-    created_at: '2026-05-11 09:30',
-    replies: []
-  }
-]);
-
-const newCommentText = ref('');
-let nextId = 100;
-
-function addComment() {
-  if (!newCommentText.value.trim()) return;
-  comments.value.push({
-    id: nextId++,
-    user: 'ゲスト',
-    text: newCommentText.value,
-    created_at: new Date().toLocaleString('ja-JP', { hour12: false }),
-    replies: []
-  });
-  newCommentText.value = '';
+interface ThreadComment extends CommentResponse {
+  replies: ThreadComment[];
 }
 
-function handleReply(parentId: number, text: string) {
-  // 再帰的に親IDを探してrepliesにpush
-  function addReply(list: any[]) {
-    for (const c of list) {
-      if (c.id === parentId) {
-        c.replies.push({
-          id: nextId++,
-          user: 'ゲスト',
-          text,
-          created_at: new Date().toLocaleString('ja-JP', { hour12: false }),
-          replies: []
-        });
-        return true;
-      }
-      if (addReply(c.replies)) return true;
-    }
-    return false;
+const route = useRoute();
+const comments = ref<ThreadComment[]>([]);
+const newCommentText = ref('');
+const loading = ref(false);
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+
+const articleId = route.params.id as string;
+
+// ⭐ テキストエリアの高さを文字量・改行に合わせて自動調節するロジック
+const adjustHeight = () => {
+  const textarea = textareaRef.value;
+  if (!textarea) return;
+  
+  // 一度高さをリセットして正しい scrollHeight を取得できるようにする
+  textarea.style.height = 'auto';
+  // 内包するコンテンツの高さに合わせて拡張 (上下のpadding分などを考慮)
+  textarea.style.height = `${textarea.scrollHeight}px`;
+};
+
+// コメント送信後にテキストエリアが綺麗に1行に戻るように watch
+watch(newCommentText, (newVal) => {
+  if (newVal === '') {
+    nextTick(() => {
+      if (textareaRef.value) textareaRef.value.style.height = 'auto';
+    });
   }
-  addReply(comments.value);
+});
+
+const loadComments = async () => {
+  if (!articleId) return;
+  loading.value = true;
+  try {
+    const rawComments = await fetchComments(articleId);
+    comments.value = buildTree(rawComments);
+  } catch (error) {
+    console.error('Failed to load comments:', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const buildTree = (flatComments: CommentResponse[]): ThreadComment[] => {
+  const map = new Map<string, ThreadComment>();
+  const roots: ThreadComment[] = [];
+
+  flatComments.forEach(c => {
+    map.set(c.id, { ...c, replies: [] });
+  });
+
+  map.forEach(c => {
+    if (c.parent_id && map.has(c.parent_id)) {
+      map.get(c.parent_id)!.replies.push(c);
+    } else {
+      roots.push(c);
+    }
+  });
+
+  return roots;
+};
+
+onMounted(loadComments);
+
+async function addComment() {
+  if (!newCommentText.value.trim() || !articleId) return;
+  try {
+    await postComment(articleId, { body: newCommentText.value });
+    newCommentText.value = '';
+    await loadComments();
+  } catch (error) {
+    console.error('Failed to post comment:', error);
+    alert('コメントの投稿に失敗しました。');
+  }
+}
+
+async function handleReply(parentId: string, text: string) {
+  if (!text.trim() || !articleId) return;
+  try {
+    await postComment(articleId, {
+      parent_id: parentId,
+      body: text
+    });
+    await loadComments();
+  } catch (error) {
+    console.error('Failed to post reply:', error);
+    alert('返信の投稿に失敗しました。');
+  }
 }
 </script>
 
@@ -99,33 +129,49 @@ function handleReply(parentId: number, text: string) {
 .add-comment-form {
   display: flex;
   gap: 10px;
-  margin-bottom: 24px;
-  align-items: flex-start;
+  margin-bottom: 20px; /* 少し縮小 */
+  align-items: flex-end; /* 下揃えにすることでテキストが伸びてもボタンが下に綺麗に配置されます */
 }
 .add-comment-form textarea {
   flex: 1;
   border-radius: 6px;
   border: 1px solid #ccc;
-  padding: 8px;
+  padding: 10px;
   font-size: 15px;
-  resize: vertical;
+  resize: none; /* ⭐ 手動可変を完全に禁止 */
+  min-height: 40px; /* 初期状態の1行分の高さ */
+  line-height: 1.4;
+  box-sizing: border-box;
 }
 .add-comment-form button {
   background: #2693B4;
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 13px 18px;
+  padding: 10px 18px; /* 高さを少し調整 */
   font-size: 15px;
   cursor: pointer;
-  min-width: 80px;
+  min-width: 90px; /* ⭐ コメント送信ボタンの幅を確保 */
+  height: 40px; /* 1行目の高さに揃える */
   transition: 0.2s;
 }
 .add-comment-form button:disabled {
   background: #ccc;
   cursor: not-allowed;
 }
-.comment-list {
-  margin-top: 0;
+
+/* ⭐ コメントとコメントの間の隙間を制御するスタイル */
+.comment-list :deep(.comment) {
+  margin-bottom: 8px !important; /* コメント同士の間隔を少し狭く設定 */
+}
+
+/* ⭐ 子の Comment.vue 側にある「返信ボタン」「キャンセルボタン」の横幅を完全一致させるためのディープセレクタ設定 */
+.comment-list :deep(.send-btn),
+.comment-list :deep(.cancel-btn),
+.comment-list :deep(.reply-box button) {
+  min-width: 90px !important;    /* 完全に幅を統一 */
+  text-align: center;
+  padding: 6px 12px !important;   /* 内側の余白を統一 */
+  box-sizing: border-box;
 }
 </style>
