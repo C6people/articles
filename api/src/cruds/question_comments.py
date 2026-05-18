@@ -2,6 +2,7 @@
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from src.models.question import QuestionComment
 from uuid import UUID
 
@@ -13,6 +14,7 @@ async def get_comments_by_question_id(
     """質問IDからコメント一覧を取得"""
     result = await db.execute(
         select(QuestionComment)
+        .options(selectinload(QuestionComment.user))
         .where(QuestionComment.question_id == question_id)
     )
     return result.scalars().all()
@@ -36,8 +38,13 @@ async def create_comment(
     )
     db.add(comment)
     await db.commit()
-    await db.refresh(comment)
-    return comment
+    # userをeager loadして返す
+    result = await db.execute(
+        select(QuestionComment)
+        .options(selectinload(QuestionComment.user))
+        .where(QuestionComment.id == comment.id)
+    )
+    return result.scalar_one()
 
 
 async def set_best_answer(
@@ -64,6 +71,7 @@ async def set_best_answer(
     # 更新後のコメントを返す
     result = await db.execute(
         select(QuestionComment)
+        .options(selectinload(QuestionComment.user))
         .where(QuestionComment.id == comment_id)
     )
     return result.scalar_one_or_none()

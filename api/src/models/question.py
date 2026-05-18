@@ -34,3 +34,9 @@ class QuestionComment(Base):
     is_answer = Column(Boolean, nullable=False, default=False, comment="true: 回答 / false: コメント")
     is_best = Column(Boolean, nullable=False, default=False, comment="true: ベストアンサー")
     created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    user = relationship("User")
+
+    @property
+    def user_name(self):
+        return self.user.name if self.user else None

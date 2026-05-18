@@ -20,7 +20,7 @@
       <div v-if="answer.is_best" class="best-badge">⭐ ベストアンサー</div>
 
       <div class="answer-header">
-        <span class="answer-user">{{ answer.user_id.slice(0, 8) }}</span>
+        <span class="answer-user">{{ answer.user_name || '不明' }}</span>
         <span class="answer-date">{{ formatDate(answer.created_at) }}</span>
       </div>
       <div class="answer-body">{{ answer.body }}</div>
@@ -45,7 +45,7 @@
       <div v-if="expandedAnswers.has(answer.id)" class="sub-comments">
         <div v-for="comment in getSubComments(answer.id)" :key="comment.id" class="sub-comment">
           <div class="sub-comment-header">
-            <span class="sub-comment-user">{{ comment.user_id.slice(0, 8) }}</span>
+            <span class="sub-comment-user">{{ comment.user_name || '不明' }}</span>
             <span class="sub-comment-date">{{ formatDate(comment.created_at) }}</span>
           </div>
           <div class="sub-comment-body">{{ comment.body }}</div>

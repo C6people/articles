@@ -9,6 +9,7 @@ export interface QuestionCommentResponse {
   is_answer: boolean;
   is_best: boolean;
   created_at: string;
+  user_name: string | null;
 }
 
 export interface QuestionCommentCreateRequest {

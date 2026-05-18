@@ -15,6 +15,7 @@ class QuestionCommentResponse(BaseModel):
     is_answer: bool
     is_best: bool
     created_at: datetime
+    user_name: str | None = None
 
     class Config:
         from_attributes = True
