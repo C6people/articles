@@ -1,58 +1,167 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import { useRouter } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 
+const API_URL = 'http://localhost:8000';
+
+// ルーターのインスタンスを取得
+const router = useRouter();
+
+const handleLogout = () => {
+    console.log("ログアウト処理実行");
+    localStorage.removeItem('token');
+    alert("ログアウトしました");
+    router.push('/login'); // ログイン画面へ飛ばす
+};
 // --------------------------
-//  自己紹介用（ユーザネーム及び自己紹介文ダミーデータ）
+//  自己紹介用
 const user = ref({
-    name: '1350132',
-    bio: '佐藤先生のクラスでネットワークを学んでいます。コンテナ技術を用いた環境の構築をしています。テストとか資格の対策の記事を書いていきます。'
+    id: '',
+    name: '',
+    bio: ''
     // 空データ確認用↓
     // bio: ''
 });
+
+// --- モーダル（bio編集関連） ---
+// モーダルはマスクみたいな感じです
+
+// 変数
+const isEditing = ref(false); // モーダルが開いているか
+const tempBio = ref('');      // 編集中の文字を一時保存する場所
+
+// プロフィールを編集ボタン
+const startEditing = () => {
+    tempBio.value = user.value.bio; // 今の自己紹介をコピー
+    isEditing.value = true;         // モーダルを表示
+};
+
+// 保存ボタン
+const saveBio = async () => {
+    try {
+        const token = localStorage.getItem('token');
+
+        const response = await axios.put(
+            `${API_URL}/users/me`,
+            {
+                bio: tempBio.value
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        // 画面更新
+        user.value = response.data;
+
+        // モーダル閉じる
+        isEditing.value = false;
+
+        console.log("保存成功");
+
+    } catch (error) {
+        console.error("保存失敗", error);
+        alert("保存に失敗しました");
+    }
+};
 // --------------------------
 // タブ切り替え用の初期値設定
 const currentTab = ref('記事');
 
-// タブ用記事管理ダミーデータ
+// タブ用記事管理データ
 interface ContentItem {
-    id: number;
+    id: string;
     title: string;
 }
 // 各タブ用のデータ。[] の中にデータがあれば表示、なければ「XXはありません」が出ます。
 // データがない場合を確認したいときは{}の中身を空にしてください。
-// 記事用ダミーデータ
-const articles = ref<ContentItem[]>([
-    { id: 1, title: 'ESP32でLEDを光らせてみる。2年後期と3年前期向け。ESP32キットを持っている学生向け' },
-    { id: 2, title: 'ゾンビ化したKubernetesを殺す' },
-    { id: 3, title: '【2024年版】これだけやっとけ！基本情報技術者試験対策' },
-    { id: 4, title: '【2024年版】これだけやっとけ！応用情報技術者試験対策' },
-    { id: 5, title: '【2024年版】これだけやっとけ！AWS認定ソリューションアーキテクト試験対策' },
-]);
-// 質問用ダミーデータ
-const questions = ref<ContentItem[]>([
-    { id: 1, title: 'Vue.jsのタブ切り替えがうまくいきません' } ,
-    { id: 2, title: 'Dockerでコンテナが起動しません' },
-    { id: 3, title: 'KubernetesのPodがPending状態から動きません' }
-]);
+// 記事用
+const articles = ref<ContentItem[]>([]);
+// 質問用
+const questions = ref<ContentItem[]>([]);
 // いいね用ダミーデータ
 const likes = ref<ContentItem[]>([
-    { id: 1, title: '2年生Linuxのテスト過去問こんな感じ' },
-    { id: 2, title: '【2025年度DW用】学内用の過去問一覧サイトを作ってみました'},
-    { id: 3, title: '1年生の皆さんへ：来年のコース選択のおすすめ！'}
+    { id: '1', title: '2年生Linuxのテスト過去問こんな感じ' },
+    { id: '2', title: '【2025年度DW用】学内用の過去問一覧サイトを作ってみました'},
+    { id: '3', title: '1年生の皆さんへ：来年のコース選択のおすすめ！'}
 ]);
+
+// --------------------------
+
+const fetchMyProfile = async () => {
+    try {
+        const token = localStorage.getItem('token');
+
+        const response = await axios.get(
+            `${API_URL}/users/me`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        user.value = response.data;
+
+    } catch (error) {
+        console.error('プロフィール取得失敗', error);
+    }
+};
+
+const fetchUserArticles = async () => {
+    try {
+        const response = await axios.get(
+            `${API_URL}/users/${user.value.id}/articles`
+        );
+
+        articles.value = response.data;
+
+    } catch (error) {
+        console.error('記事取得失敗', error);
+    }
+};
+
+const fetchUserQuestions = async () => {
+    try {
+        const response = await axios.get(
+            `${API_URL}/users/${user.value.id}/questions`
+        );
+
+        questions.value = response.data;
+
+    } catch (error) {
+        console.error('質問取得失敗', error);
+    }
+};
+
+onMounted(async () => {
+    await fetchMyProfile();
+
+    await fetchUserArticles();
+    await fetchUserQuestions();
+});
+
 </script>
 
 <template>
     <CommonHeader />
     <div class="profile-page-wrapper">
         <main class="profile-container">
-    
+
             <div class="main-content">
+                <div class="profile-wrapper">
+                    <router-link to="/" class="back-link">
+                        ←ホームに戻る
+                    </router-link>
+                </div>
                 <div class="user-header">
                     <h1><strong>{{ user.name }}</strong> さんのプロフィール</h1>
-                    <button class="btn-edit-profile">プロフィールを編集</button>
+                    <!--   編集モーダルを開くためのボタン。クリックするとisEditingがtrueになり、モーダルが表示される仕組みです。 -->
+                    <button class="btn-edit-profile" @click="startEditing">自己紹介を編集</button>
                 </div>
 
                 <div class="card bio-card">
@@ -124,13 +233,31 @@ const likes = ref<ContentItem[]>([
                 </div>
 
                 <div class="card action-card">
-                    <span>退会する</span>
-                    <button class="btn-action-red">退会する</button>
+                    <span>ログアウトする</span>
+                    <button @click="handleLogout" class="btn-action-red">ログアウト</button>
                 </div>
                 </div>
             </aside>
 
         </main>
+        
+        <!-- 編集モーダル -->
+        <!-- isEditingがtrueの時に表示なのでmodal-container以外（背景半透明）に触れると閉じるようになっています -->
+        <div v-if="isEditing" class="modal-mask" @click.self="isEditing = false">
+            <div class="modal-container">
+                <h3>自己紹介を編集</h3>
+                <textarea 
+                    v-model="tempBio" 
+                    class="edit-bio-area" 
+                    placeholder="自己紹介を入力してください"
+                ></textarea>
+                <div class="modal-buttons">
+                    <button class="btn-save" @click="saveBio">保存</button>
+                    <button class="btn-cancel" @click="isEditing = false">キャンセル</button>
+                </div>
+            </div>
+        </div>
+        <!-- ------------------------ -->
     </div>
 </template>
 
@@ -142,6 +269,34 @@ const likes = ref<ContentItem[]>([
     font-family: sans-serif;
     color: #333;
 }
+/* --- ホームに戻るボタン --- */
+/* 親要素 */
+.profile-wrapper {
+    margin-bottom: 40px;
+}
+
+/* ホームに戻るリンク */
+.back-link {
+    background: #f0f2f5;
+    border: 3px solid #2693B4;
+    border-radius: 20px;
+    padding: 6px 24px;
+    color: #2693B4;
+    cursor: pointer;
+    margin-bottom: 30px;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: ease-out 0.3s;
+}
+
+.back-link:hover {
+    background-color: #2693B4;
+    color: #fff;
+}
+/* --- ↑ホームに戻るボタン --- */
+
 /* ---  メインレイアウト --- */
 .profile-container {
     display: flex;
@@ -152,6 +307,7 @@ const likes = ref<ContentItem[]>([
     gap: 100px; /* メイン（記事）とサイド（パスワード）の間のスペース */
     align-items: flex-start;
 }
+
 .main-content {
     min-width: 0; /* Flexの子要素がはみ出さないようにするための魔法の1行 */
     flex: 1;
@@ -184,7 +340,7 @@ const likes = ref<ContentItem[]>([
 }
 .btn-edit-profile:hover {
     background-color: #2693B4;
-    color: white;
+    color: #fff;
 }
 
 /* --- カード共通 --- */
@@ -232,7 +388,7 @@ const likes = ref<ContentItem[]>([
 /* --- 選択された時の見た目 --- */
 .tab-item.active {
     background-color: #2693B4; /* Figmaの青 */
-    color: white !important;
+    color: #fff !important;
     border-radius: 10px 10px 0 0; /* 上だけ丸く */
 }
 
@@ -286,7 +442,7 @@ const likes = ref<ContentItem[]>([
 }
 .btn-article-edit:hover {
     background-color: #2693B4;
-    color: white;
+    color: #fff;
 }
 /* ----------------------- */
 /* --- データなし表示 --- */
@@ -300,7 +456,7 @@ const likes = ref<ContentItem[]>([
 /* 右のサイドバー */
 .sidebar {
     width: 320px;
-    margin-top: 130px; /* 微調整の集大成 さわるな */
+    margin-top: 195px; /* 微調整の集大成 さわるな */
 }
 /* パスワード変更・退会 */
 .sticky-container {
@@ -317,7 +473,7 @@ const likes = ref<ContentItem[]>([
 }
 .btn-action-red {
     border: 3px solid #b42626;
-    background: white;
+    background: #fff;
     color: #b42626;
     border-radius: 20px;
     padding: 6px 30px;
@@ -327,10 +483,102 @@ const likes = ref<ContentItem[]>([
 }
 .btn-action-red:hover {
     background-color: #b42626;
-    color: white;
+    color: #fff;
 }
+
+/* --- モーダル関連 --- */
+.modal-mask {
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* モーダル中央の白い箱 */
+.modal-container {
+    background: #f0f2f5;
+    padding: 24px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    color: #3c3c3c;
+}
+.modal-container h3 {
+    margin-top: 0;
+    font-size: 20px;
+    font-weight: bold;
+}
+/* 入力エリア */
+.edit-bio-area {
+    background-color: #fff; /* 入力欄は真っ白 */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); /* ほんの少しの立体感 */
+    font-family: sans-serif;
+    width: 100%;
+    height: 150px;
+    margin: 15px 0;
+    padding: 15px;
+    border: 1px solid #e8e8e8; /* 線は極薄 */
+    border-radius: 15px;
+    resize: none; /* ユーザがサイズ変更できないようにしました 縦方向のサイズ変更はnoneをverticalに変更してください*/
+    transition: ease-out 0.3s;
+}
+.edit-bio-area:focus {
+    border: 1px solid #c3c3c3;
+    outline: none;
+}
+/* ボタンの並び */
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-save {
+    background-color: #2693B4;
+    color: #f0f2f5;
+    border: none;
+    padding: 8px 16px;
+    border: 3px solid #2693B4;
+    border-radius: 70px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: ease-out 0.3s;
+}
+.btn-save:hover {
+    background-color: #1a6d85; 
+    border-color: #1a6d85;
+}
+
+.btn-cancel {
+    background-color: #f0f2f5;
+    color: #f44336;
+    border: none;
+    padding: 8px 16px;
+    border: 3px solid #f44336;
+    border-radius: 70px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: ease-out 0.3s;
+}
+.btn-cancel:hover {
+    background-color: #f44336;
+    color: #f0f2f5;
+    border: 3px solid #f44336;
+}
+/* --- ↑モーダル --- */
+
 /* 画面幅が 768px 以下（タブレットやスマホ）になったら適用 */
 @media (max-width: 768px) {
+    .profile-wrapper {
+    padding-top: 20px;  /* リンクの分だけ上に隙間を作る */
+    }
     .profile-container {
         flex-direction: column; /* 「左と右」を「上と下」に並び替える */
         align-items: stretch;   /* 横幅いっぱいまで広げる */

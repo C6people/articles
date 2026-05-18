@@ -162,7 +162,7 @@ const goToPost = () => router.push("/post");
   padding: 4px 14px;
   border-radius: 20px;
   font-size: 13px;
-  margin-bottom: 20px;
+  margin: 20px 0 20px 0;
 }
 
 .body-content {
@@ -227,12 +227,14 @@ const goToPost = () => router.push("/post");
 /* その他パーツ */
 .back-button {
   background: none;
-  border: 1px solid #2693B4;
+  border: 3px solid #2693B4;
   color: #2693B4;
   padding: 8px 20px;
   border-radius: 20px;
   cursor: pointer;
   margin-bottom: 20px;
+  font-weight: bold;
+  transition: ease 0.3s;
 }
 
 .back-button:hover {
@@ -241,6 +243,7 @@ const goToPost = () => router.push("/post");
 }
 
 .sidebar-title {
+  margin-top: 70px;
   font-size: 16px;
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
