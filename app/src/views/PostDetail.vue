@@ -5,15 +5,20 @@ import CommonHeader from '@/components/CommonHeader.vue';
 import { fetchArticleById, type Article } from '@/api/articles';
 import { fetchQuestionById } from '@/api/questions';
 import CommentThread from '@/components/CommentThread.vue';
+import QuestionAnswerThread from '@/components/QuestionAnswerThread.vue';
 
 const route = useRoute();
 const router = useRouter();
 const article = ref<Article | null>(null);
 const loading = ref(true);
+const contentId = ref('');
+const contentType = ref<'article' | 'question'>('article');
 
 onMounted(async () => {
   const id = route.params.id as string;
   const type = route.query.type as string; // 'question' or 'article'
+  contentId.value = id;
+  contentType.value = type === 'question' ? 'question' : 'article';
 
   try {
     if (type === 'question') {
@@ -89,9 +94,19 @@ const goToPost = () => router.push("/post");
             </div>
           </section>
 
-          <section class="main-card comment-section">
+          <!-- 質問の場合：Q&A特化UI -->
+          <section v-if="contentType === 'question'" class="main-card comment-section">
+            <h2 class="comment-count">回答</h2>
+            <QuestionAnswerThread
+              :questionId="contentId"
+              :questionUserId="article.user_id"
+            />
+          </section>
+
+          <!-- 記事の場合：通常コメント -->
+          <section v-else class="main-card comment-section">
             <h2 class="comment-count">コメント</h2>
-            <CommentThread />
+            <CommentThread :contentId="contentId" :contentType="contentType" />
           </section>
         </template>
 

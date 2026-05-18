@@ -13,6 +13,7 @@ class QuestionCommentResponse(BaseModel):
     parent_id: UUID | None = None
     body: str
     is_answer: bool
+    is_best: bool
     created_at: datetime
 
     class Config:

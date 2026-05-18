@@ -28,7 +28,7 @@
           :key="reply.id"
           :comment="reply"
           :level="level + 1"
-          @reply="$emit('reply', reply.id, $event)"
+          @reply="(parentId: string, text: string) => $emit('reply', parentId, text)"
         />
       </div>
     </transition>

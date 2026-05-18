@@ -32,4 +32,5 @@ class QuestionComment(Base):
     parent_id = Column(UUID(as_uuid=True), ForeignKey("question_comments.id", ondelete="CASCADE"), nullable=True, comment="返信先コメントID（NULLなら質問への直接コメント）")
     body = Column(Text, nullable=False)
     is_answer = Column(Boolean, nullable=False, default=False, comment="true: 回答 / false: コメント")
+    is_best = Column(Boolean, nullable=False, default=False, comment="true: ベストアンサー")
     created_at = Column(DateTime, nullable=False, server_default=func.now())
