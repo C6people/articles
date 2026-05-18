@@ -89,6 +89,32 @@ const filteredAndSortedPosts = computed(() => {
   });
 });
 
+// JWTからログイン中ユーザーID取得
+const getUserIdFromToken =
+(): string => {
+
+    const token =
+        localStorage.getItem('token');
+
+    if (!token) return '';
+
+    const tokenParts =
+        token.split('.');
+
+    if (tokenParts.length < 2) {
+        return '';
+    }
+
+    const payload =
+        JSON.parse(
+            atob(tokenParts[1] ?? '')
+        );
+
+    return String(
+        payload.user_id ?? ''
+    );
+};
+
 // 記事詳細画面へ遷移
 const goToPost = () => {
   router.push("/post");
@@ -98,14 +124,37 @@ const goToDetail = (post: Article) => {
   router.push({ name: "PostDetail", params: { id: post.id }, query: { type } });
 };
 const goToUserProfile = (
-  userId: string
+    userId?: string | number
 ) => {
-  router.push({
-  name: 'UserProfile',
-  params: {
-    userId
-  }
-});
+
+    if (!userId) return;
+
+    const myUserId =
+        getUserIdFromToken();
+
+    const clickedUserId =
+        String(userId);
+
+    console.log(
+        'clicked:',
+        clickedUserId
+    );
+
+    console.log(
+        'me:',
+        myUserId
+    );
+
+    if (
+        clickedUserId ===
+        String(myUserId)
+    ) {
+        router.push('/profile');
+    } else {
+        router.push(
+            `/users/${clickedUserId}`
+        );
+    }
 };
 const formatDate = (dateStr: string | undefined) => {
   if (!dateStr) return '';
@@ -182,7 +231,7 @@ const formatDate = (dateStr: string | undefined) => {
             <h3 class="post-title">{{ post.title }}</h3>
             <p class="post-summary">{{ post.content }}</p>
             <div class="post-footer">
-              <span class="author-name　clickable-user" @click.stop="goToUserProfile(post.user_id)">
+              <span class="author-name clickable-user" @click.stop="goToUserProfile(post.user_id)">
                 👤 {{ post.user_name || '不明' }}
               </span>
               <div class="post-stats">

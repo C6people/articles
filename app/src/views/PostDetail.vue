@@ -11,6 +11,31 @@ const router = useRouter();
 const article = ref<Article | null>(null);
 const loading = ref(true);
 
+const getUserIdFromToken =
+(): string => {
+
+    const token =
+        localStorage.getItem('token');
+
+    if (!token) return '';
+
+    const tokenParts =
+        token.split('.');
+
+    if (tokenParts.length < 2) {
+        return '';
+    }
+
+    const payload =
+        JSON.parse(
+            atob(tokenParts[1] ?? '')
+        );
+
+    return String(
+        payload.user_id ?? ''
+    );
+};
+
 onMounted(async () => {
   const id = route.params.id as string;
   const type = route.query.type as string; // 'question' or 'article'
@@ -56,14 +81,37 @@ const formatDate = (dateStr: string | Date | undefined) => {
 const backToHome = () => router.push("/");
 const goToPost = () => router.push("/post");
 const goToUserProfile = (
-  userId: string
+    userId?: string | number
 ) => {
-  router.push({
-  name: 'UserProfile',
-  params: {
-    userId
-  }
-});
+
+    if (!userId) return;
+
+    const myUserId =
+        getUserIdFromToken();
+
+    const clickedUserId =
+        String(userId);
+
+    console.log(
+        'clicked:',
+        clickedUserId
+    );
+
+    console.log(
+        'me:',
+        myUserId
+    );
+
+    if (
+        clickedUserId ===
+        String(myUserId)
+    ) {
+        router.push('/profile');
+    } else {
+        router.push(
+            `/users/${clickedUserId}`
+        );
+    }
 };
 </script>
 
