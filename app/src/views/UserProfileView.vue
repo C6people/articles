@@ -265,29 +265,28 @@ onMounted(async () => {
 /* --- ホームに戻るボタン --- */
 /* 親要素 */
 .profile-wrapper {
-    position: relative; /* 子の絶対配置の基準にする */
-    margin-bottom: 50px;
+    margin-bottom: 40px;
 }
 
 /* ホームに戻るリンク */
 .back-link {
-    position: absolute; /* 親要素に対して絶対配置 */
-    gap: 4px;
+    background: #f0f2f5;
+    border: 3px solid #2693B4;
+    border-radius: 20px;
+    padding: 6px 24px;
     color: #2693B4;
+    cursor: pointer;
+    margin-bottom: 30px;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 0.875rem;
     text-decoration: none;
-    font-size: 1rem;
-    font-weight: 500;
-    /* 下線の準備 */
-    background-image: linear-gradient(#2693B4, #2693B4);
-    background-position: 0% 100%;
-    background-repeat: no-repeat;
-    background-size: 0% 2px;
-    transition: background-size 0.4s ease;
+    transition: ease-out 0.3s;
 }
 
 .back-link:hover {
-    opacity: 0.7;
-    background-size: 100% 2px; /* ホバーで端まで伸びる */
+    background-color: #2693B4;
+    color: #fff;
 }
 /* --- ↑ホームに戻るボタン --- */
 
@@ -450,7 +449,7 @@ onMounted(async () => {
 /* 右のサイドバー */
 .sidebar {
     width: 320px;
-    margin-top: 180px; /* 微調整の集大成 さわるな */
+    margin-top: 195px; /* 微調整の集大成 さわるな */
 }
 /* パスワード変更・退会 */
 .sticky-container {
@@ -571,7 +570,7 @@ onMounted(async () => {
 /* 画面幅が 768px 以下（タブレットやスマホ）になったら適用 */
 @media (max-width: 768px) {
     .profile-wrapper {
-    padding-top: 10px;  /* リンクの分だけ上に隙間を作る */
+    padding-top: 20px;  /* リンクの分だけ上に隙間を作る */
     }
     .profile-container {
         flex-direction: column; /* 「左と右」を「上と下」に並び替える */
