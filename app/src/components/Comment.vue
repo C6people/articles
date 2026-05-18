@@ -11,6 +11,7 @@
       <div class="comment-body">{{ comment.text }}</div>
       <div class="comment-actions">
         <button class="reply-btn" @click="toggleReply">返信</button>
+        <button class="delete-btn" @click="deleteComment">削除</button>
         <button v-if="comment.replies.length" class="toggle-btn" @click="toggleCollapse">
           {{ collapsed ? '返信を表示' : '返信を隠す' }} ({{ comment.replies.length }})
         </button>
@@ -28,7 +29,8 @@
           :key="reply.id"
           :comment="reply"
           :level="level + 1"
-          @reply="$emit('reply', reply.id, $event)"
+          @reply="(commentId, text) => $emit('reply', commentId, text)"
+          @delete="(commentId) => $emit('delete', commentId)"
         />
       </div>
     </transition>
@@ -56,7 +58,7 @@ const props = withDefaults(defineProps<{
   level: 0  // もし指定がなければ 0 を代入する
 });
 
-const emit = defineEmits(['reply']);
+const emit = defineEmits(['reply', 'delete']);
 const showReplyBox = ref(false);
 const replyText = ref('');
 const collapsed = ref(true);
@@ -73,6 +75,12 @@ function sendReply() {
     replyText.value = '';
     showReplyBox.value = false;
     collapsed.value = false;
+  }
+}
+
+function deleteComment() {
+  if (confirm('このコメントを削除しますか？')) {
+    emit('delete', props.comment.id);
   }
 }
 
@@ -156,6 +164,16 @@ function toggleCollapse() {
   margin-bottom: 2px;
 }
 .reply-btn:hover {
+  text-decoration: underline;
+}
+.delete-btn {
+  font-size: 13px;
+  color: #d32f2f;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.delete-btn:hover {
   text-decoration: underline;
 }
 .toggle-btn {
