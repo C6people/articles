@@ -238,6 +238,11 @@ onMounted(async () => {
         <main v-if="!userNotFound" class="profile-container">
     
             <div class="main-content">
+                <div class="profile-wrapper">
+                    <router-link to="/" class="back-link">
+                        ←ホームに戻る
+                    </router-link>
+                </div>
                 <div class="user-header">
                     <h1><strong>{{ user.name }}</strong> さんのプロフィール</h1>
                     <!--   編集モーダルを開くためのボタン。クリックするとisEditingがtrueになり、モーダルが表示される仕組みです。 -->
@@ -370,6 +375,34 @@ onMounted(async () => {
     font-family: sans-serif;
     color: #333;
 }
+/* --- ホームに戻るボタン --- */
+/* 親要素 */
+.profile-wrapper {
+    margin-bottom: 40px;
+}
+
+/* ホームに戻るリンク */
+.back-link {
+    background: #f0f2f5;
+    border: 3px solid #2693B4;
+    border-radius: 20px;
+    padding: 6px 24px;
+    color: #2693B4;
+    cursor: pointer;
+    margin-bottom: 30px;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: ease-out 0.3s;
+}
+
+.back-link:hover {
+    background-color: #2693B4;
+    color: #fff;
+}
+/* --- ↑ホームに戻るボタン --- */
+
 /* ---  メインレイアウト --- */
 .profile-container {
     display: flex;
@@ -380,6 +413,7 @@ onMounted(async () => {
     gap: 100px; /* メイン（記事）とサイド（パスワード）の間のスペース */
     align-items: flex-start;
 }
+
 .main-content {
     min-width: 0; /* Flexの子要素がはみ出さないようにするための魔法の1行 */
     flex: 1;
@@ -528,7 +562,7 @@ onMounted(async () => {
 /* 右のサイドバー */
 .sidebar {
     width: 320px;
-    margin-top: 130px; /* 微調整の集大成 さわるな */
+    margin-top: 195px; /* 微調整の集大成 さわるな */
 }
 /* パスワード変更・退会 */
 .sticky-container {
@@ -648,6 +682,9 @@ onMounted(async () => {
 
 /* 画面幅が 768px 以下（タブレットやスマホ）になったら適用 */
 @media (max-width: 768px) {
+    .profile-wrapper {
+    padding-top: 20px;  /* リンクの分だけ上に隙間を作る */
+    }
     .profile-container {
         flex-direction: column; /* 「左と右」を「上と下」に並び替える */
         align-items: stretch;   /* 横幅いっぱいまで広げる */

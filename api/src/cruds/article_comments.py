@@ -1,7 +1,9 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from src.models.article import ArticleComment
 from uuid import UUID
+
 async def get_comments_by_article_id(       # 記事IDからコメント一覧を取得する関数
     db: AsyncSession,
     article_id: UUID
@@ -11,6 +13,7 @@ async def get_comments_by_article_id(       # 記事IDからコメント一覧�
     result = await db.execute(
         # ArticleCommentテーブルからデータを取得
         select(ArticleComment)
+        .options(selectinload(ArticleComment.user))
         # 場所は記事IDが一致するもの
         .where(ArticleComment.article_id == article_id)
     )
@@ -39,7 +42,10 @@ async def create_comment(   # コメント作成
     # 保存
     await db.commit()
 
-    # 最新状態取得
-    await db.refresh(comment)
-
-    return comment
+    # userをeager loadして返す
+    result = await db.execute(
+        select(ArticleComment)
+        .options(selectinload(ArticleComment.user))
+        .where(ArticleComment.id == comment.id)
+    )
+    return result.scalar_one()

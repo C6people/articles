@@ -32,3 +32,9 @@ class ArticleComment(Base):
     parent_id = Column(UUID(as_uuid=True), ForeignKey("article_comments.id", ondelete="CASCADE"), nullable=True, comment="返信先コメントID（NULLなら記事への直接コメント）")
     body = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    user = relationship("User")
+
+    @property
+    def user_name(self):
+        return self.user.name if self.user else None
