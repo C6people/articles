@@ -24,7 +24,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from 'vue';
-import { useRoute } from 'vue-router';
 import Comment from './Comment.vue';
 import { fetchComments, postComment, type CommentResponse } from '@/api/comments';
 import { fetchQuestionComments, postQuestionComment, type QuestionCommentResponse } from '@/api/questionComments';
@@ -36,6 +35,7 @@ interface ThreadComment {
   parent_id: string | null;
   body: string;
   created_at: string;
+  user_name?: string | null;
   replies: ThreadComment[];
 }
 
@@ -50,8 +50,6 @@ const comments = ref<ThreadComment[]>([]);
 const newCommentText = ref('');
 const loading = ref(false);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
-
-const articleId = route.params.id as string;
 
 // ⭐ テキストエリアの高さを文字量・改行に合わせて自動調節するロジック
 const adjustHeight = () => {

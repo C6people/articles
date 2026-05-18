@@ -71,7 +71,6 @@ export interface CommentType {
   article_id?: string;
   question_id?: string;
   user_id: string;
-  user_name: string | null;
   parent_id: string | null;
   body: string;
   created_at: string;
