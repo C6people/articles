@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 
+const API_URL = 'http://localhost:8000';
+
 // ルーターのインスタンスを取得
 const router = useRouter();
 
@@ -37,29 +39,34 @@ const startEditing = () => {
 };
 
 // 保存ボタン
-const saveBio = () => {
-    user.value.bio = tempBio.value; // 画面上のデータを更新
-    isEditing.value = false;        // モーダルを閉じる
-    console.log("保存されました:", user.value.bio);
-
-    /* TODO: バックエンド
-        フロントバックつなげる用
-        いらないと思いますがコメントアウトで残しておきます
-    */
-    /*
-    const originalBio = user.value.bio; // 万が一のために元のbioを保存しておくもの（ダミーデータ時点では必要ないのでコメントアウトしておきます）
+const saveBio = async () => {
     try {
-        await axios.patch('api/profile', {
-            bio: tempBio.value
-        });
-        console.log("サーバー保存成功");
+        const token = localStorage.getItem('token');
+
+        const response = await axios.put(
+            `${API_URL}/users/me`,
+            {
+                bio: tempBio.value
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        // 画面更新
+        user.value = response.data;
+
+        // モーダル閉じる
+        isEditing.value = false;
+
+        console.log("保存成功");
+
     } catch (error) {
-        console.error("サーバー保存失敗", error);
-        // 失敗したら元のbioに戻すなどの処理
-        user.value.bio = originalBio;
-        alert("保存に失敗しました。");
+        console.error("保存失敗", error);
+        alert("保存に失敗しました");
     }
-    */
 };
 // --------------------------
 // タブ切り替え用の初期値設定
@@ -90,7 +97,7 @@ const fetchMyProfile = async () => {
         const token = localStorage.getItem('token');
 
         const response = await axios.get(
-            'http://localhost:8000/users/me',
+            `${API_URL}/users/me`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -108,7 +115,7 @@ const fetchMyProfile = async () => {
 const fetchUserArticles = async () => {
     try {
         const response = await axios.get(
-            `http://localhost:8000/users/${user.value.id}/articles`
+            `${API_URL}/users/${user.value.id}/articles`
         );
 
         articles.value = response.data;
@@ -121,7 +128,7 @@ const fetchUserArticles = async () => {
 const fetchUserQuestions = async () => {
     try {
         const response = await axios.get(
-            `http://localhost:8000/users/${user.value.id}/questions`
+            `${API_URL}/users/${user.value.id}/questions`
         );
 
         questions.value = response.data;
