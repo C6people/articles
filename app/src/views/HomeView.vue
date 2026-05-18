@@ -182,7 +182,7 @@ const formatDate = (dateStr: string | undefined) => {
             <h3 class="post-title">{{ post.title }}</h3>
             <p class="post-summary">{{ post.content }}</p>
             <div class="post-footer">
-              <span class="author-name" @click.stop="goToUserProfile(post.user_id)">
+              <span class="author-name　clickable-user" @click.stop="goToUserProfile(post.user_id)">
                 👤 {{ post.user_name || '不明' }}
               </span>
               <div class="post-stats">

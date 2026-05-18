@@ -90,7 +90,7 @@ const goToUserProfile = (
 
           <section class="main-card article-section">
             <h1 class="title">{{ article.title }}</h1>
-            <div class="author-name" @click.stop="goToUserProfile(article.user_id)">
+            <div class="author-name clickable-user" @click.stop="goToUserProfile(article.user_id)">
               👤 {{ article.user_name || '不明' }}
             </div>
             <div class="category-badge">{{ article.category }}</div>
