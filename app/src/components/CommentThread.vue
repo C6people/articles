@@ -17,77 +17,80 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import Comment from './Comment.vue';
+import { fetchComments, postComment, type CommentResponse } from '@/api/comments';
 
-// モックデータ
-const comments = ref([
-  {
-    id: 1,
-    user: '田中太郎',
-    text: 'とても参考になりました！',
-    created_at: '2026-05-10 12:00',
-    replies: [
-      {
-        id: 2,
-        user: '管理人',
-        text: 'コメントありがとうございます！',
-        created_at: '2026-05-10 12:10',
-        replies: [
-          {
-            id: 3,
-            user: '田中太郎',
-            text: 'また質問させてください！',
-            created_at: '2026-05-10 12:15',
-            replies: []
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 4,
-    user: '山田花子',
-    text: '記事の内容が分かりやすかったです。',
-    created_at: '2026-05-11 09:30',
-    replies: []
-  }
-]);
-
-const newCommentText = ref('');
-let nextId = 100;
-
-function addComment() {
-  if (!newCommentText.value.trim()) return;
-  comments.value.push({
-    id: nextId++,
-    user: 'ゲスト',
-    text: newCommentText.value,
-    created_at: new Date().toLocaleString('ja-JP', { hour12: false }),
-    replies: []
-  });
-  newCommentText.value = '';
+interface ThreadComment extends CommentResponse {
+  replies: ThreadComment[];
 }
 
-function handleReply(parentId: number, text: string) {
-  // 再帰的に親IDを探してrepliesにpush
-  function addReply(list: any[]) {
-    for (const c of list) {
-      if (c.id === parentId) {
-        c.replies.push({
-          id: nextId++,
-          user: 'ゲスト',
-          text,
-          created_at: new Date().toLocaleString('ja-JP', { hour12: false }),
-          replies: []
-        });
-        return true;
-      }
-      if (addReply(c.replies)) return true;
-    }
-    return false;
+const route = useRoute();
+const comments = ref<ThreadComment[]>([]);
+const newCommentText = ref('');
+const loading = ref(false);
+
+const articleId = route.params.id as string;
+
+const loadComments = async () => {
+  if (!articleId) return;
+  loading.value = true;
+  try {
+    const rawComments = await fetchComments(articleId);
+    comments.value = buildTree(rawComments);
+  } catch (error) {
+    console.error('Failed to load comments:', error);
+  } finally {
+    loading.value = false;
   }
-  addReply(comments.value);
+};
+
+const buildTree = (flatComments: CommentResponse[]): ThreadComment[] => {
+  const map = new Map<string, ThreadComment>();
+  const roots: ThreadComment[] = [];
+
+  flatComments.forEach(c => {
+    map.set(c.id, { ...c, replies: [] });
+  });
+
+  map.forEach(c => {
+    if (c.parent_id && map.has(c.parent_id)) {
+      map.get(c.parent_id)!.replies.push(c);
+    } else {
+      roots.push(c);
+    }
+  });
+
+  return roots;
+};
+
+onMounted(loadComments);
+
+async function addComment() {
+  if (!newCommentText.value.trim() || !articleId) return;
+  try {
+    await postComment(articleId, { body: newCommentText.value });
+    newCommentText.value = '';
+    await loadComments();
+  } catch (error) {
+    console.error('Failed to post comment:', error);
+    alert('コメントの投稿に失敗しました。');
+  }
+}
+
+async function handleReply(parentId: string, text: string) {
+  if (!text.trim() || !articleId) return;
+  try {
+    await postComment(articleId, {
+      parent_id: parentId,
+      body: text
+    });
+    await loadComments();
+  } catch (error) {
+    console.error('Failed to post reply:', error);
+    alert('返信の投稿に失敗しました。');
+  }
 }
 </script>
 

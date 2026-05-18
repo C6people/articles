@@ -5,10 +5,10 @@
     </div>
     <div class="comment-main">
       <div class="comment-header">
-        <span class="comment-user">{{ comment.user }}</span>
+        <span class="comment-user">{{ comment.user_id }}</span>
         <span class="comment-date">{{ comment.created_at }}</span>
       </div>
-      <div class="comment-body">{{ comment.text }}</div>
+      <div class="comment-body">{{ comment.body }}</div>
       <div class="comment-actions">
         <button class="reply-btn" @click="toggleReply">返信</button>
         <button v-if="comment.replies.length" class="toggle-btn" @click="toggleCollapse">
@@ -36,15 +36,19 @@
 </template>
 
 <script setup lang="ts">
+
 import { ref } from 'vue';
 
-// 1. このコンポーネントが扱う「コメント1件分」の型を定義
-interface CommentType {
-  id: number;
-  user: string;
-  text: string;
+// ThreadCommentの構造に合わせた型定義
+export interface CommentType {
+  id: string;
+  article_id: string;
+  user_id: string;
+  parent_id: string | null;
+  body: string;
   created_at: string;
-  replies: CommentType[]; // 返信も同じ形をしている
+  user_name?: string;
+  replies: CommentType[];
 }
 
 // 2. props（親から受け取るデータ）に型を設定

@@ -17,8 +17,6 @@ class ArticleCommentResponse(BaseModel):
     created_at: datetime  # 作成日時
 
 class CommentCreate(BaseModel): # コメント投稿用のスキーマ
-
-    article_id: UUID                # コメントを投稿する記事のID
     parent_id: UUID | None = None   # 親コメントのID（返信の場合）
     body: str                       # コメントの内容
 
