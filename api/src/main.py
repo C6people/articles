@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routers import articles, question, auth,user
-from src.routers import article_comments 
+from .routers import articles, question, auth, user
+from src.routers import article_comments
+from src.routers import question_comments
 
 app = FastAPI(
     title="Articles API",
@@ -25,6 +26,7 @@ app.include_router(question.router, tags=["questions"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(user.router, tags=["users"])
 app.include_router(article_comments.router, tags=["article_comments"])
+app.include_router(question_comments.router, tags=["question_comments"])
 
 
 @app.on_event("startup")

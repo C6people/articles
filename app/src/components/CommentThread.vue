@@ -27,12 +27,25 @@ import { ref, onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import Comment from './Comment.vue';
 import { fetchComments, postComment, type CommentResponse } from '@/api/comments';
+import { fetchQuestionComments, postQuestionComment, type QuestionCommentResponse } from '@/api/questionComments';
 
-interface ThreadComment extends CommentResponse {
+// 共通のコメント型
+interface ThreadComment {
+  id: string;
+  user_id: string;
+  parent_id: string | null;
+  body: string;
+  created_at: string;
   replies: ThreadComment[];
 }
 
-const route = useRoute();
+const props = withDefaults(defineProps<{
+  contentId: string;
+  contentType?: 'article' | 'question';
+}>(), {
+  contentType: 'article',
+});
+
 const comments = ref<ThreadComment[]>([]);
 const newCommentText = ref('');
 const loading = ref(false);
@@ -61,10 +74,15 @@ watch(newCommentText, (newVal) => {
 });
 
 const loadComments = async () => {
-  if (!articleId) return;
+  if (!props.contentId) return;
   loading.value = true;
   try {
-    const rawComments = await fetchComments(articleId);
+    let rawComments: (CommentResponse | QuestionCommentResponse)[];
+    if (props.contentType === 'question') {
+      rawComments = await fetchQuestionComments(props.contentId);
+    } else {
+      rawComments = await fetchComments(props.contentId);
+    }
     comments.value = buildTree(rawComments);
   } catch (error) {
     console.error('Failed to load comments:', error);
@@ -73,7 +91,7 @@ const loadComments = async () => {
   }
 };
 
-const buildTree = (flatComments: CommentResponse[]): ThreadComment[] => {
+const buildTree = (flatComments: any[]): ThreadComment[] => {
   const map = new Map<string, ThreadComment>();
   const roots: ThreadComment[] = [];
 
@@ -94,10 +112,17 @@ const buildTree = (flatComments: CommentResponse[]): ThreadComment[] => {
 
 onMounted(loadComments);
 
+// contentId が変わったら再読み込み
+watch(() => props.contentId, loadComments);
+
 async function addComment() {
-  if (!newCommentText.value.trim() || !articleId) return;
+  if (!newCommentText.value.trim() || !props.contentId) return;
   try {
-    await postComment(articleId, { body: newCommentText.value });
+    if (props.contentType === 'question') {
+      await postQuestionComment(props.contentId, { body: newCommentText.value });
+    } else {
+      await postComment(props.contentId, { body: newCommentText.value });
+    }
     newCommentText.value = '';
     await loadComments();
   } catch (error) {
@@ -107,12 +132,13 @@ async function addComment() {
 }
 
 async function handleReply(parentId: string, text: string) {
-  if (!text.trim() || !articleId) return;
+  if (!text.trim() || !props.contentId) return;
   try {
-    await postComment(articleId, {
-      parent_id: parentId,
-      body: text
-    });
+    if (props.contentType === 'question') {
+      await postQuestionComment(props.contentId, { parent_id: parentId, body: text });
+    } else {
+      await postComment(props.contentId, { parent_id: parentId, body: text });
+    }
     await loadComments();
   } catch (error) {
     console.error('Failed to post reply:', error);
