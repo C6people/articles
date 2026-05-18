@@ -17,7 +17,7 @@
       </div>
     </div>
     <div v-if="showReplyBox" class="reply-box">
-      <textarea v-model="replyText" placeholder="返信を入力..." rows="2" @input="autoResize" ref="replyTextarea"></textarea>
+      <textarea v-model="replyText" placeholder="返信を入力..." rows="1" @input="autoResize" ref="replyTextarea"></textarea>
       <button class="send-btn" @click="sendReply">送信</button>
       <button class="cancel-btn" @click="toggleReply">キャンセル</button>
     </div>
@@ -219,8 +219,8 @@ function toggleCollapse() {
   font-size: 14px;
   resize: none;
   overflow-y: hidden;
-  min-height: 40px;
-  line-height: 1.6;
+  min-height: 10px;
+  line-height: 1.4;
   transition: height 0.1s;
 }
 .send-btn {
@@ -231,7 +231,6 @@ function toggleCollapse() {
   padding: 4px 16px;
   font-size: 13px;
   cursor: pointer;
-  margin-right: 8px;
 }
 .cancel-btn {
   background: #ffffff;
