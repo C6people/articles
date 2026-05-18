@@ -149,7 +149,7 @@ const formatDate = (dateStr: string | undefined) => {
       <main class="main-content">
         <div class="list-header">
           <h2 class="section-title">
-            {{ selectedCategory }}の質問 ({{ filteredAndSortedPosts.length }}件)
+            {{ selectedCategory }}の記事 ({{ filteredAndSortedPosts.length }}件)
           </h2>
 
           <div class="sort-tabs">
@@ -279,6 +279,7 @@ const formatDate = (dateStr: string | undefined) => {
   background-color: #007bff;
   color: white;
   border-color: #007bff;
+  font-weight: bold;
 }
 
 /* 記事カード装飾 */
@@ -288,6 +289,7 @@ const formatDate = (dateStr: string | undefined) => {
   border-radius: 8px;
   margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: ease-in-out 0.3s;
 }
 
 .post-card:hover {
