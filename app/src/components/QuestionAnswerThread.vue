@@ -94,7 +94,9 @@ const currentUserId = computed(() => {
   const token = localStorage.getItem('token');
   if (!token) return '';
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const parts = token.split('.');
+    if (parts.length !== 3) return '';
+    const payload = JSON.parse(atob(parts[1] || ''));
     return payload.user_id || '';
   } catch {
     return '';

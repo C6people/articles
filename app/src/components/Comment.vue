@@ -42,12 +42,13 @@ import { ref } from 'vue';
 // ThreadCommentの構造に合わせた型定義
 export interface CommentType {
   id: string;
-  article_id: string;
+  article_id?: string;
+  question_id?: string;
   user_id: string;
   parent_id: string | null;
   body: string;
   created_at: string;
-  user_name?: string;
+  user_name?: string | null;
   replies: CommentType[];
 }
 
