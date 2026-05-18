@@ -55,6 +55,16 @@ const formatDate = (dateStr: string | Date | undefined) => {
 
 const backToHome = () => router.push("/");
 const goToPost = () => router.push("/post");
+const goToUserProfile = (
+  userId: string
+) => {
+  router.push({
+  name: 'UserProfile',
+  params: {
+    userId
+  }
+});
+};
 </script>
 
 <template>
@@ -80,7 +90,9 @@ const goToPost = () => router.push("/post");
 
           <section class="main-card article-section">
             <h1 class="title">{{ article.title }}</h1>
-            <div class="author-name">👤 {{ article.user_name || '不明' }}</div>
+            <div class="author-name" @click.stop="goToUserProfile(article.user_id)">
+              👤 {{ article.user_name || '不明' }}
+            </div>
             <div class="category-badge">{{ article.category }}</div>
             <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
 
@@ -241,5 +253,15 @@ const goToPost = () => router.push("/post");
   border-bottom: 1px solid #eee;
   font-size: 14px;
   cursor: pointer;
+}
+
+.clickable-user {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.clickable-user:hover {
+  color: #2693B4;
+  text-decoration: underline;
 }
 </style>
