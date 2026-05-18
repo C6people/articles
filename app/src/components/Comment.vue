@@ -5,8 +5,8 @@
     </div>
     <div class="comment-main">
       <div class="comment-header">
-        <span class="comment-user">{{ comment.user_id }}</span>
-        <span class="comment-date">{{ comment.created_at }}</span>
+        <span class="comment-user">{{ comment.user_name ?? '名無しさん' }}</span>
+        <span class="comment-date">{{ formattedDate }}</span>
       </div>
       <div class="comment-body">{{ comment.body }}</div>
       <div class="comment-actions">
@@ -17,7 +17,7 @@
       </div>
     </div>
     <div v-if="showReplyBox" class="reply-box">
-      <textarea v-model="replyText" placeholder="返信を入力..." rows="2"></textarea>
+      <textarea v-model="replyText" placeholder="返信を入力..." rows="2" @input="autoResize" ref="replyTextarea"></textarea>
       <button class="send-btn" @click="sendReply">送信</button>
       <button class="cancel-btn" @click="toggleReply">キャンセル</button>
     </div>
@@ -37,17 +37,43 @@
 
 <script setup lang="ts">
 
-import { ref } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
+// 日時フォーマット関数
+function toJSTandFormat(dateStr: string): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  // JSTに変換
+  const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  // yyyy-mm-dd hh:mm
+  const yyyy = jst.getFullYear();
+  const mm = String(jst.getMonth() + 1).padStart(2, '0');
+  const dd = String(jst.getDate()).padStart(2, '0');
+  const hh = String(jst.getHours()).padStart(2, '0');
+  const min = String(jst.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
+const formattedDate = computed(() => toJSTandFormat(props.comment.created_at));
+// テキストエリア自動リサイズ
+const replyTextarea = ref<HTMLTextAreaElement | null>(null);
+function autoResize() {
+  nextTick(() => {
+    if (replyTextarea.value) {
+      replyTextarea.value.style.height = 'auto';
+      replyTextarea.value.style.height = replyTextarea.value.scrollHeight + 'px';
+    }
+  });
+}
 
 // ThreadCommentの構造に合わせた型定義
 export interface CommentType {
   id: string;
   article_id: string;
   user_id: string;
+  user_name: string | null;
   parent_id: string | null;
   body: string;
   created_at: string;
-  user_name?: string;
   replies: CommentType[];
 }
 
@@ -68,15 +94,22 @@ const collapsed = ref(true);
 function toggleReply() {
   showReplyBox.value = !showReplyBox.value;
   if (!showReplyBox.value) replyText.value = '';
+  nextTick(() => {
+    if (showReplyBox.value && replyTextarea.value) {
+      replyTextarea.value.style.height = 'auto';
+    }
+  });
 }
 
 function sendReply() {
-  // props.comment.id と書いたときにエラーが出なくなります
   if (replyText.value.trim() && props.comment) {
     emit('reply', props.comment.id, replyText.value);
     replyText.value = '';
     showReplyBox.value = false;
     collapsed.value = false;
+    nextTick(() => {
+      if (replyTextarea.value) replyTextarea.value.style.height = 'auto';
+    });
   }
 }
 
@@ -88,7 +121,7 @@ function toggleCollapse() {
 <style scoped>
 /* 階層インデント */
 .comment {
-  margin-top: 24px;
+  margin-top: 20px;
   position: relative;
   padding-left: 0;
 }
@@ -140,10 +173,12 @@ function toggleCollapse() {
 .comment-date {
   color: #aaa;
 }
+/* 改行を反映 */
 .comment-body {
   font-size: 15px;
   color: #333;
   margin-bottom: 8px;
+  white-space: pre-wrap;
 }
 .comment-actions {
   display: flex;
@@ -182,7 +217,11 @@ function toggleCollapse() {
   border: 1px solid #ccc;
   padding: 6px;
   font-size: 14px;
-  resize: vertical;
+  resize: none;
+  overflow-y: hidden;
+  min-height: 40px;
+  line-height: 1.6;
+  transition: height 0.1s;
 }
 .send-btn {
   background: #2693B4;
@@ -195,9 +234,11 @@ function toggleCollapse() {
   margin-right: 8px;
 }
 .cancel-btn {
-  background: none;
-  color: #888;
-  border: none;
+  background: #ffffff;
+  color: #666666;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 16px;
   font-size: 13px;
   cursor: pointer;
 }

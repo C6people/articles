@@ -7,7 +7,7 @@ export interface CommentResponse {
   parent_id: string | null;
   body: string;
   created_at: string;
-  user_name: string;
+  user_name: string | null;
 }
 
 export interface CommentCreateRequest {
