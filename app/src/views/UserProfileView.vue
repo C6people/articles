@@ -27,6 +27,7 @@ const user = ref({
 });
 
 const isMyProfile = ref(true); 
+const userNotFound = ref(false);
 
 // --- モーダル（bio編集関連） ---
 // モーダルはマスクみたいな感じです
@@ -119,13 +120,47 @@ const fetchUserProfile = async (
     userId: string
 ) => {
     try {
-        const response = await axios.get(
-            `http://localhost:8000/users/${userId}`
-        );
 
-        user.value = response.data;
+        userNotFound.value =
+            false;
 
-    } catch (error) {
+        const response =
+            await axios.get(
+                `${API_URL}/users/${userId}`
+            );
+
+        const fetchedUser =
+            response.data;
+
+        // ユーザーが存在しない
+        if (
+            !fetchedUser ||
+            !fetchedUser.id
+        ) {
+            userNotFound.value =
+                true;
+            return;
+        }
+
+        user.value =
+            fetchedUser;
+
+    } catch (error: any) {
+
+        const status =
+            error.response?.status;
+
+        // 404: ユーザー不存在
+        // 422: 不正なUUID
+        if (
+            status === 404 ||
+            status === 422
+        ) {
+            userNotFound.value =
+                true;
+            return;
+        }
+
         console.error(
             '他ユーザプロフィール取得失敗',
             error
@@ -161,19 +196,31 @@ const fetchUserQuestions = async () => {
 
 onMounted(async () => {
     const routeUserId =
-        route.params.userId as string | undefined;
+        route.params.userId as
+        string | undefined;
 
     // URLにuserIdがある
     if (routeUserId) {
-        isMyProfile.value = false;
+
+        isMyProfile.value =
+            false;
 
         await fetchUserProfile(
             routeUserId
         );
+
+        // ユーザー不存在なら終了
+        if (
+            userNotFound.value
+        ) {
+            return;
+        }
     }
     // 自分のプロフィール
     else {
-        isMyProfile.value = true;
+
+        isMyProfile.value =
+            true;
 
         await fetchMyProfile();
     }
@@ -188,7 +235,7 @@ onMounted(async () => {
 <template>
     <CommonHeader />
     <div class="profile-page-wrapper">
-        <main class="profile-container">
+        <main v-if="!userNotFound" class="profile-container">
     
             <div class="main-content">
                 <div class="user-header">
@@ -273,6 +320,27 @@ onMounted(async () => {
             </aside>
 
         </main>
+        <div
+        v-else
+        class="not-found-container"
+        >
+            <h1>
+                ユーザーが見つかりません
+            </h1>
+
+            <p>
+                指定されたユーザーは
+                存在しないか、
+                削除された可能性があります。
+            </p>
+
+            <button
+                class="back-button"
+                @click="router.push('/')"   
+                >
+                ホームへ戻る
+            </button>
+        </div>
 
         <!-- 編集モーダル -->
         <!-- isEditingがtrueの時に表示なのでmodal-container以外（背景半透明）に触れると閉じるようになっています -->
@@ -598,5 +666,34 @@ onMounted(async () => {
         gap: 20px;
         margin: 0; /* 上のマージンは消す */
     }
+}
+
+.not-found-container {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+}
+
+.not-found-container h1 {
+    font-size: 32px;
+    color: #333;
+}
+
+.not-found-container p {
+    color: #666;
+    font-size: 16px;
+}
+
+.back-button {
+    background: none;
+    border: 1px solid #2693B4;
+    color: #2693B4;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
 }
 </style>
