@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 
 const API_URL = 'http://localhost:8000';
 
 // ルーターのインスタンスを取得
 const router = useRouter();
+const route = useRoute();
 
 const handleLogout = () => {
     console.log("ログアウト処理実行");
@@ -24,6 +25,8 @@ const user = ref({
     // 空データ確認用↓
     // bio: ''
 });
+
+const isMyProfile = ref(true); 
 
 // --- モーダル（bio編集関連） ---
 // モーダルはマスクみたいな感じです
@@ -112,6 +115,24 @@ const fetchMyProfile = async () => {
     }
 };
 
+const fetchUserProfile = async (
+    userId: string
+) => {
+    try {
+        const response = await axios.get(
+            `http://localhost:8000/users/${userId}`
+        );
+
+        user.value = response.data;
+
+    } catch (error) {
+        console.error(
+            '他ユーザプロフィール取得失敗',
+            error
+        );
+    }
+};
+
 const fetchUserArticles = async () => {
     try {
         const response = await axios.get(
@@ -139,8 +160,25 @@ const fetchUserQuestions = async () => {
 };
 
 onMounted(async () => {
-    await fetchMyProfile();
+    const routeUserId =
+        route.params.userId as string | undefined;
 
+    // URLにuserIdがある
+    if (routeUserId) {
+        isMyProfile.value = false;
+
+        await fetchUserProfile(
+            routeUserId
+        );
+    }
+    // 自分のプロフィール
+    else {
+        isMyProfile.value = true;
+
+        await fetchMyProfile();
+    }
+
+    // user.id が確定後に取得
     await fetchUserArticles();
     await fetchUserQuestions();
 });
@@ -156,7 +194,7 @@ onMounted(async () => {
                 <div class="user-header">
                     <h1><strong>{{ user.name }}</strong> さんのプロフィール</h1>
                     <!--   編集モーダルを開くためのボタン。クリックするとisEditingがtrueになり、モーダルが表示される仕組みです。 -->
-                    <button class="btn-edit-profile" @click="startEditing">自己紹介を編集</button>
+                    <button v-if="isMyProfile" class="btn-edit-profile" @click="startEditing">自己紹介を編集</button>
                 </div>
 
                 <div class="card bio-card">
@@ -220,7 +258,7 @@ onMounted(async () => {
             </div>
         
             <!-- サイドバーPW変更等 -->
-            <aside class="sidebar">
+            <aside v-if="isMyProfile" class="sidebar">
                 <div class="sticky-container">
                 <div class="card action-card">
                     <span>パスワード変更</span>
@@ -238,7 +276,7 @@ onMounted(async () => {
 
         <!-- 編集モーダル -->
         <!-- isEditingがtrueの時に表示なのでmodal-container以外（背景半透明）に触れると閉じるようになっています -->
-        <div v-if="isEditing" class="modal-mask" @click.self="isEditing = false">
+        <div v-if="isMyProfile && isEditing" class="modal-mask" @click.self="isEditing = false">
             <div class="modal-container">
                 <h3>自己紹介を編集</h3>
                 <textarea 
