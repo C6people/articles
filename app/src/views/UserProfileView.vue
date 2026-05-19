@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 
 const API_URL = 'http://localhost:8000';
 
 // ルーターのインスタンスを取得
 const router = useRouter();
+const route = useRoute();
 
 const handleLogout = () => {
     console.log("ログアウト処理実行");
@@ -24,6 +25,9 @@ const user = ref({
     // 空データ確認用↓
     // bio: ''
 });
+
+const isMyProfile = ref(true); 
+const userNotFound = ref(false);
 
 // --- モーダル（bio編集関連） ---
 // モーダルはマスクみたいな感じです
@@ -112,6 +116,58 @@ const fetchMyProfile = async () => {
     }
 };
 
+const fetchUserProfile = async (
+    userId: string
+) => {
+    try {
+
+        userNotFound.value =
+            false;
+
+        const response =
+            await axios.get(
+                `${API_URL}/users/${userId}`
+            );
+
+        const fetchedUser =
+            response.data;
+
+        // ユーザーが存在しない
+        if (
+            !fetchedUser ||
+            !fetchedUser.id
+        ) {
+            userNotFound.value =
+                true;
+            return;
+        }
+
+        user.value =
+            fetchedUser;
+
+    } catch (error: any) {
+
+        const status =
+            error.response?.status;
+
+        // 404: ユーザー不存在
+        // 422: 不正なUUID
+        if (
+            status === 404 ||
+            status === 422
+        ) {
+            userNotFound.value =
+                true;
+            return;
+        }
+
+        console.error(
+            '他ユーザプロフィール取得失敗',
+            error
+        );
+    }
+};
+
 const fetchUserArticles = async () => {
     try {
         const response = await axios.get(
@@ -139,8 +195,37 @@ const fetchUserQuestions = async () => {
 };
 
 onMounted(async () => {
-    await fetchMyProfile();
+    const routeUserId =
+        route.params.userId as
+        string | undefined;
 
+    // URLにuserIdがある
+    if (routeUserId) {
+
+        isMyProfile.value =
+            false;
+
+        await fetchUserProfile(
+            routeUserId
+        );
+
+        // ユーザー不存在なら終了
+        if (
+            userNotFound.value
+        ) {
+            return;
+        }
+    }
+    // 自分のプロフィール
+    else {
+
+        isMyProfile.value =
+            true;
+
+        await fetchMyProfile();
+    }
+
+    // user.id が確定後に取得
     await fetchUserArticles();
     await fetchUserQuestions();
 });
@@ -150,8 +235,8 @@ onMounted(async () => {
 <template>
     <CommonHeader />
     <div class="profile-page-wrapper">
-        <main class="profile-container">
-
+        <main v-if="!userNotFound" class="profile-container">
+    
             <div class="main-content">
                 <div class="profile-wrapper">
                     <router-link to="/" class="back-link">
@@ -161,7 +246,7 @@ onMounted(async () => {
                 <div class="user-header">
                     <h1><strong>{{ user.name }}</strong> さんのプロフィール</h1>
                     <!--   編集モーダルを開くためのボタン。クリックするとisEditingがtrueになり、モーダルが表示される仕組みです。 -->
-                    <button class="btn-edit-profile" @click="startEditing">自己紹介を編集</button>
+                    <button v-if="isMyProfile" class="btn-edit-profile" @click="startEditing">自己紹介を編集</button>
                 </div>
 
                 <div class="card bio-card">
@@ -225,7 +310,7 @@ onMounted(async () => {
             </div>
         
             <!-- サイドバーPW変更等 -->
-            <aside class="sidebar">
+            <aside v-if="isMyProfile" class="sidebar">
                 <div class="sticky-container">
                 <div class="card action-card">
                     <span>パスワード変更</span>
@@ -240,10 +325,31 @@ onMounted(async () => {
             </aside>
 
         </main>
-        
+        <div
+        v-else
+        class="not-found-container"
+        >
+            <h1>
+                ユーザーが見つかりません
+            </h1>
+
+            <p>
+                指定されたユーザーは
+                存在しないか、
+                削除された可能性があります。
+            </p>
+
+            <button
+                class="back-button"
+                @click="router.push('/')"   
+                >
+                ホームへ戻る
+            </button>
+        </div>
+
         <!-- 編集モーダル -->
         <!-- isEditingがtrueの時に表示なのでmodal-container以外（背景半透明）に触れると閉じるようになっています -->
-        <div v-if="isEditing" class="modal-mask" @click.self="isEditing = false">
+        <div v-if="isMyProfile && isEditing" class="modal-mask" @click.self="isEditing = false">
             <div class="modal-container">
                 <h3>自己紹介を編集</h3>
                 <textarea 
@@ -597,5 +703,34 @@ onMounted(async () => {
         gap: 20px;
         margin: 0; /* 上のマージンは消す */
     }
+}
+
+.not-found-container {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+}
+
+.not-found-container h1 {
+    font-size: 32px;
+    color: #333;
+}
+
+.not-found-container p {
+    color: #666;
+    font-size: 16px;
+}
+
+.back-button {
+    background: none;
+    border: 1px solid #2693B4;
+    color: #2693B4;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
 }
 </style>

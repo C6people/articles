@@ -39,7 +39,12 @@ const routes = [
   },
   {
     path: '/profile',
-    name: 'Profile',
+    name: 'MyProfile',
+    component: UserProfileView
+  },
+  {
+    path: '/users/:userId',
+    name: 'UserProfile',
     component: UserProfileView
   }
 ]

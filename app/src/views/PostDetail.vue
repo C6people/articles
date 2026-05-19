@@ -14,6 +14,31 @@ const loading = ref(true);
 const contentId = ref('');
 const contentType = ref<'article' | 'question'>('article');
 
+const getUserIdFromToken =
+(): string => {
+
+    const token =
+        localStorage.getItem('token');
+
+    if (!token) return '';
+
+    const tokenParts =
+        token.split('.');
+
+    if (tokenParts.length < 2) {
+        return '';
+    }
+
+    const payload =
+        JSON.parse(
+            atob(tokenParts[1] ?? '')
+        );
+
+    return String(
+        payload.user_id ?? ''
+    );
+};
+
 onMounted(async () => {
   const id = route.params.id as string;
   const type = route.query.type as string; // 'question' or 'article'
@@ -60,6 +85,39 @@ const formatDate = (dateStr: string | Date | undefined) => {
 
 const backToHome = () => router.push("/");
 const goToPost = () => router.push("/post");
+const goToUserProfile = (
+    userId?: string | number
+) => {
+
+    if (!userId) return;
+
+    const myUserId =
+        getUserIdFromToken();
+
+    const clickedUserId =
+        String(userId);
+
+    console.log(
+        'clicked:',
+        clickedUserId
+    );
+
+    console.log(
+        'me:',
+        myUserId
+    );
+
+    if (
+        clickedUserId ===
+        String(myUserId)
+    ) {
+        router.push('/profile');
+    } else {
+        router.push(
+            `/users/${clickedUserId}`
+        );
+    }
+};
 </script>
 
 <template>
@@ -85,7 +143,9 @@ const goToPost = () => router.push("/post");
 
           <section class="main-card article-section">
             <h1 class="title">{{ article.title }}</h1>
-            <div class="author-name">👤 {{ article.user_name || '不明' }}</div>
+            <div class="author-name clickable-user" @click.stop="goToUserProfile(article.user_id)">
+              👤 {{ article.user_name || '不明' }}
+            </div>
             <div class="category-badge">{{ article.category }}</div>
             <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
 
@@ -259,5 +319,15 @@ const goToPost = () => router.push("/post");
   border-bottom: 1px solid #eee;
   font-size: 14px;
   cursor: pointer;
+}
+
+.clickable-user {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.clickable-user:hover {
+  color: #2693B4;
+  text-decoration: underline;
 }
 </style>
