@@ -10,7 +10,7 @@ export type Article = {
   content: string;
   author: string;
   category: string;
-  likes: number;
+  likes_count: number;
   comments: number;
   created_at: string;
 };
