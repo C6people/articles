@@ -1,7 +1,7 @@
 """質問関連モデル"""
 
 import uuid
-from sqlalchemy import Column, String, Text, DateTime, Boolean, ForeignKey, UUID
+from sqlalchemy import Column, String, Text, DateTime, Boolean, ForeignKey, UUID, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from src.database import Base
@@ -14,6 +14,7 @@ class Question(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     body = Column(Text, nullable=False)
+    likes_count = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     
     user = relationship("User")
@@ -33,6 +34,7 @@ class QuestionComment(Base):
     body = Column(Text, nullable=False)
     is_answer = Column(Boolean, nullable=False, default=False, comment="true: 回答 / false: コメント")
     is_best = Column(Boolean, nullable=False, default=False, comment="true: ベストアンサー")
+    likes_count = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     user = relationship("User")
