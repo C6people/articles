@@ -4,6 +4,7 @@ from .database import engine, Base
 from .routers import articles, question, auth, user
 from src.routers import article_comments
 from src.routers import question_comments
+from src.routers import likes
 
 app = FastAPI(
     title="Articles API",
@@ -27,6 +28,7 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(user.router, tags=["users"])
 app.include_router(article_comments.router, tags=["article_comments"])
 app.include_router(question_comments.router, tags=["question_comments"])
+app.include_router(likes.router, tags=["likes"])
 
 
 @app.on_event("startup")
