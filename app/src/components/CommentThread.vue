@@ -127,8 +127,6 @@ async function handleReply(parentId: string, text: string) {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
-  /* ⭐ テキストエリアが限界値まで広がったとき、ボタンの位置が下に引っ張られすぎないよう
-     下揃え(flex-end)から、上揃え(flex-start)に変更するとスマートに見えます */
   align-items: flex-start; 
 }
 .add-comment-form textarea {
@@ -139,9 +137,7 @@ async function handleReply(parentId: string, text: string) {
   font-size: 15px;
   resize: none; 
   min-height: 40px; 
-  /* ⭐ 変更点：高さの拡張限界を設定（約5行分の高さに制限） */
   max-height: 120px; 
-  /* ⭐ 変更点：文字量が限界を超えたら、右側にだけ綺麗にスクロールバーを出す */
   overflow-y: auto; 
   line-height: 1.4;
   box-sizing: border-box;

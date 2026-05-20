@@ -144,24 +144,18 @@ function toggleCollapse() {
 
 <style scoped>
 .comment-wrapper {
-  /* ここは基準点にする必要がなくなったため、プレーンなラッパーになります */
   position: relative;
 }
 
 .comment {
   margin-top: 12px;
-  /* ⭐ 縦線の absolute 配置の基準点（原点）を、マージン移動後の「この階層の左端」にします */
   position: relative;
   transition: margin 0.2s ease;
 }
 
-/* ⭐ 縦線の配置ルールを「内側基準」に最適化 */
 .comment-connector {
   position: absolute;
-  /* 自分が右にズレた位置から、左側（マイナス方向）に 12px 戻した位置にピンポイントで配置。
-     これで親の線と絶対に重ならなくなります */
   left: -12px;
-  /* 上のコメントの境界から綺麗に繋げるため、マージン分（-12px）上に伸ばします */
   top: -12px; 
   bottom: 0;
   width: 2px;
