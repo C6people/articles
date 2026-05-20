@@ -57,7 +57,7 @@ onMounted(async () => {
         content: q.body,
         author: q.user_name || '',
         category: '質問',
-        likes: 0,
+        likes_count: q.likes_count,
         comments: 0,
         created_at: q.created_at,
       };
@@ -148,6 +148,7 @@ const goToUserProfile = (
             </div>
             <div class="category-badge">{{ article.category }}</div>
             <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
+            <div class="article-meta">👍 高評価 {{ article.likes_count }}</div>
 
             <div class="body-content">
               {{ article.body }}

@@ -26,6 +26,7 @@
       <div class="answer-body">{{ answer.body }}</div>
 
       <div class="answer-actions">
+        <span class="like-display">👍 {{ answer.likes_count }}</span>
         <!-- ベストアンサー選択ボタン（質問者のみ） -->
         <button
           v-if="isQuestionOwner && !answer.is_best"
@@ -49,6 +50,7 @@
             <span class="sub-comment-date">{{ formatDate(comment.created_at) }}</span>
           </div>
           <div class="sub-comment-body">{{ comment.body }}</div>
+          <div class="sub-comment-like">👍 {{ comment.likes_count }}</div>
         </div>
 
         <!-- コメント入力 -->
@@ -402,5 +404,16 @@ const formatDate = (dateStr: string) => {
   color: #999;
   padding: 40px;
   font-size: 14px;
+}
+
+.like-display {
+  color: #666;
+  font-size: 13px;
+}
+
+.sub-comment-like {
+  font-size: 12px;
+  color: #777;
+  margin-top: 4px;
 }
 </style>
