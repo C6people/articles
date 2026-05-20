@@ -10,7 +10,7 @@
       </div>
       <div class="comment-body">{{ comment.body }}</div>
       <div class="comment-actions">
-        <span class="like-display">👍 {{ comment.likes_count }}</span>
+        <span class="like-display">👍 {{ comment.likes_count ?? 0 }}</span>
         <button class="reply-btn" @click="toggleReply">返信</button>
         <button v-if="comment.replies.length" class="toggle-btn" @click="toggleCollapse">
           {{ collapsed ? '返信を表示' : '返信を隠す' }} ({{ comment.replies.length }})
@@ -76,7 +76,7 @@ export interface CommentType {
   body: string;
   created_at: string;
   user_name?: string | null;
-  likes_count: number;
+  likes_count?: number;
   replies: CommentType[];
 }
 
