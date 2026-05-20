@@ -14,6 +14,7 @@ class QuestionCommentResponse(BaseModel):
     body: str
     is_answer: bool
     is_best: bool
+    likes_count: int = 0
     created_at: datetime
     user_name: str | None = None
 

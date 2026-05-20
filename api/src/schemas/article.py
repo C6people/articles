@@ -14,6 +14,7 @@ class ArticleResponse(BaseModel):
     title: str
     category: str
     body: str
+    likes_count: int = 0
     created_at: datetime
 
     class Config:

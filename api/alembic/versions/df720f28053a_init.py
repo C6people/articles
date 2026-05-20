@@ -1,8 +1,8 @@
-"""Init with UUID
+"""init
 
-Revision ID: 59872208f0b8
+Revision ID: df720f28053a
 Revises: 
-Create Date: 2026-04-23 17:28:26.446982
+Create Date: 2026-05-20 01:50:09.978894
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '59872208f0b8'
+revision: str = 'df720f28053a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,6 +26,7 @@ def upgrade() -> None:
     sa.Column('name', sa.String(), nullable=False, comment='ユーザー名（ログイン用）'),
     sa.Column('role', sa.String(), nullable=False, comment="'student' または 'teacher'"),
     sa.Column('password_hash', sa.String(), nullable=False, comment='ハッシュ化されたパスワード'),
+    sa.Column('bio', sa.String(), nullable=True, comment='自己紹介'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
@@ -34,7 +35,8 @@ def upgrade() -> None:
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('body', sa.Text(), nullable=False),
-    sa.Column('category', sa.String(), server_default='その他', nullable=False),
+    sa.Column('category', sa.String(), nullable=False),
+    sa.Column('likes_count', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -53,6 +55,7 @@ def upgrade() -> None:
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('body', sa.Text(), nullable=False),
+    sa.Column('likes_count', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -63,6 +66,7 @@ def upgrade() -> None:
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('parent_id', sa.UUID(), nullable=True, comment='返信先コメントID（NULLなら記事への直接コメント）'),
     sa.Column('body', sa.Text(), nullable=False),
+    sa.Column('likes_count', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['article_id'], ['articles.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['parent_id'], ['article_comments.id'], ondelete='CASCADE'),
@@ -76,6 +80,8 @@ def upgrade() -> None:
     sa.Column('parent_id', sa.UUID(), nullable=True, comment='返信先コメントID（NULLなら質問への直接コメント）'),
     sa.Column('body', sa.Text(), nullable=False),
     sa.Column('is_answer', sa.Boolean(), nullable=False, comment='true: 回答 / false: コメント'),
+    sa.Column('is_best', sa.Boolean(), nullable=False, comment='true: ベストアンサー'),
+    sa.Column('likes_count', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['parent_id'], ['question_comments.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['question_id'], ['questions.id'], ondelete='CASCADE'),

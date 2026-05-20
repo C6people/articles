@@ -12,6 +12,7 @@ class QuestionResponse(BaseModel):
     user_name: str | None = Field(default=None, alias="user_name")
     title: str
     body: str
+    likes_count: int = 0
     created_at: datetime
 
     class Config:

@@ -1,7 +1,7 @@
 """記事関連モデル"""
 
 import uuid
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, UUID
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, UUID, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from src.database import Base
@@ -15,6 +15,7 @@ class Article(Base):
     title = Column(String, nullable=False)
     body = Column(Text, nullable=False)
     category = Column(String, nullable=False, default="その他")  # カテゴリを追加
+    likes_count = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     user = relationship("User")
@@ -31,6 +32,7 @@ class ArticleComment(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     parent_id = Column(UUID(as_uuid=True), ForeignKey("article_comments.id", ondelete="CASCADE"), nullable=True, comment="返信先コメントID（NULLなら記事への直接コメント）")
     body = Column(Text, nullable=False)
+    likes_count = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     user = relationship("User")
