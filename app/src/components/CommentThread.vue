@@ -40,18 +40,15 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null);
 
 const articleId = route.params.id as string;
 
-// ⭐ テキストエリアの高さを文字量・改行に合わせて自動調節するロジック
+// 高さを自動調節するロジック（CSSの max-height を超えると自動的に頭打ちになります）
 const adjustHeight = () => {
   const textarea = textareaRef.value;
   if (!textarea) return;
   
-  // 一度高さをリセットして正しい scrollHeight を取得できるようにする
   textarea.style.height = 'auto';
-  // 内包するコンテンツの高さに合わせて拡張 (上下のpadding分などを考慮)
   textarea.style.height = `${textarea.scrollHeight}px`;
 };
 
-// コメント送信後にテキストエリアが綺麗に1行に戻るように watch
 watch(newCommentText, (newVal) => {
   if (newVal === '') {
     nextTick(() => {
@@ -129,8 +126,10 @@ async function handleReply(parentId: string, text: string) {
 .add-comment-form {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px; /* 少し縮小 */
-  align-items: flex-end; /* 下揃えにすることでテキストが伸びてもボタンが下に綺麗に配置されます */
+  margin-bottom: 20px;
+  /* ⭐ テキストエリアが限界値まで広がったとき、ボタンの位置が下に引っ張られすぎないよう
+     下揃え(flex-end)から、上揃え(flex-start)に変更するとスマートに見えます */
+  align-items: flex-start; 
 }
 .add-comment-form textarea {
   flex: 1;
@@ -138,8 +137,12 @@ async function handleReply(parentId: string, text: string) {
   border: 1px solid #ccc;
   padding: 10px;
   font-size: 15px;
-  resize: none; /* ⭐ 手動可変を完全に禁止 */
-  min-height: 40px; /* 初期状態の1行分の高さ */
+  resize: none; 
+  min-height: 40px; 
+  /* ⭐ 変更点：高さの拡張限界を設定（約5行分の高さに制限） */
+  max-height: 120px; 
+  /* ⭐ 変更点：文字量が限界を超えたら、右側にだけ綺麗にスクロールバーを出す */
+  overflow-y: auto; 
   line-height: 1.4;
   box-sizing: border-box;
 }
@@ -148,11 +151,11 @@ async function handleReply(parentId: string, text: string) {
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 10px 18px; /* 高さを少し調整 */
+  padding: 10px 18px; 
   font-size: 15px;
   cursor: pointer;
-  min-width: 90px; /* ⭐ コメント送信ボタンの幅を確保 */
-  height: 40px; /* 1行目の高さに揃える */
+  min-width: 90px; 
+  height: 40px; /* 1行目の高さにジャストフィット */
   transition: 0.2s;
 }
 .add-comment-form button:disabled {
@@ -160,18 +163,16 @@ async function handleReply(parentId: string, text: string) {
   cursor: not-allowed;
 }
 
-/* ⭐ コメントとコメントの間の隙間を制御するスタイル */
 .comment-list :deep(.comment) {
-  margin-bottom: 8px !important; /* コメント同士の間隔を少し狭く設定 */
+  margin-bottom: 8px !important; 
 }
 
-/* ⭐ 子の Comment.vue 側にある「返信ボタン」「キャンセルボタン」の横幅を完全一致させるためのディープセレクタ設定 */
 .comment-list :deep(.send-btn),
 .comment-list :deep(.cancel-btn),
 .comment-list :deep(.reply-box button) {
-  min-width: 90px !important;    /* 完全に幅を統一 */
+  min-width: 90px !important;    
   text-align: center;
-  padding: 6px 12px !important;   /* 内側の余白を統一 */
+  padding: 6px 12px !important;   
   box-sizing: border-box;
 }
 </style>
