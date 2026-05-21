@@ -6,6 +6,7 @@ export interface QuestionCommentResponse {
   user_id: string;
   parent_id: string | null;
   body: string;
+  likes_count: number;
   is_answer: boolean;
   is_best: boolean;
   created_at: string;

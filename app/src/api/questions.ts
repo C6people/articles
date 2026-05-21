@@ -6,6 +6,7 @@ export type Question = {
   user_name: string | null;
   title: string;
   body: string;
+  likes_count: number;
   created_at: string;
 };
 

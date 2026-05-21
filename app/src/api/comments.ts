@@ -6,6 +6,7 @@ export interface CommentResponse {
   user_id: string;
   parent_id: string | null;
   body: string;
+  likes_count: number;
   created_at: string;
   user_name: string | null;
 }

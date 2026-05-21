@@ -29,7 +29,7 @@ onMounted(async () => {
       content: '',         // Homeではタイトルのみ表示
       author: q.user_name || '',
       category: '質問',    // 質問は固定カテゴリー
-      likes: 0,
+      likes_count: q.likes_count,
       comments: 0,
       created_at: q.created_at,
     }));
@@ -236,7 +236,7 @@ const formatDate = (dateStr: string | undefined) => {
               </span>
               <div class="post-stats">
                 <span class="stat">💬 コメント {{ post.comments }}</span>
-                <span class="stat">👍 高評価 {{ post.likes }}</span>
+                <span class="stat">👍 高評価 {{ post.likes_count }}</span>
               </div>
             </div>
           </article>
