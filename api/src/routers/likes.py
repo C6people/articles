@@ -49,12 +49,12 @@ async def like_question_comment(
     return LikeResponse(message="質問のコメントにいいねしました", likes_count=likes_count)
 
 @router.get(
-    "/users/me/likes",
+    "/users/{user_id}/likes",
     response_model=LikedContentsResponse
 )
-async def get_my_likes(
+async def get_user_likes(
+    user_id: UUID,
     db: AsyncSession = Depends(get_db),
-    user_id: UUID = Depends(get_current_user_id)
 ):
     articles = await like_crud.get_liked_articles(
         db,
