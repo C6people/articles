@@ -16,6 +16,10 @@ const handleLogout = () => {
     alert("ログアウトしました");
     router.push('/login'); // ログイン画面へ飛ばす
 };
+const goToPasswordChange = () => {
+    // 遷移を実行
+    router.push('/password')
+}
 // --------------------------
 //  自己紹介用
 const user = ref({
@@ -314,7 +318,7 @@ onMounted(async () => {
                 <div class="sticky-container">
                 <div class="card action-card">
                     <span>パスワード変更</span>
-                    <button class="btn-action-red">変更</button>
+                    <button @click="goToPasswordChange" class="btn-action-red">変更</button>
                 </div>
 
                 <div class="card action-card">
