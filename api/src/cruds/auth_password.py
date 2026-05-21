@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.user import User
 
 
-# パスワード変更
+# パスワード更新
 async def update_password(
 
     db: AsyncSession,
@@ -10,9 +10,10 @@ async def update_password(
     user: User,
 
     hashed_password: str
+
 ):
 
-    # パスワード更新
+    # hash化済みPWを保存
     user.password_hash = hashed_password
 
     # DB保存
@@ -22,4 +23,3 @@ async def update_password(
     await db.refresh(user)
 
     return user
-    
