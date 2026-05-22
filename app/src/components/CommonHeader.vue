@@ -29,9 +29,9 @@ const executeSearch = () => {
 
 // プロフィール編集からプロフィールを表示に変更0515
 // --- プロフィールを表示0515 ---
-const goToPlofile = () => {
-    console.log("プロフィール画面へ移動");
-    router.push('/profile');
+const goToProfile = () => {
+    console.log("プロフィール画面へ強制移動（リロード）");
+    window.location.href = '/profile'; // ブラウザの機能でページを読み込み直す0522
 };
 // ----------------------------------------------------
 const handleLogout = () => {
@@ -69,15 +69,16 @@ const handleLogout = () => {
 
                     <!-- ログアウトボタン0508暫定的---------------- -->
                     <div class="user-menu-container">
-                        <!-- router-linkに変更0512 -->
-                        <router-link to="/profile" class="profile-icon">
+                        <!-- a hrefに変更0522 -->
+                        <!-- 強制的にリロードをかけて自分のプロフ情報を取得します -->
+                        <a href="/profile" class="profile-icon">
                             <div class="color-avatar">
                                 <span>U</span> 
                             </div>
-                        </router-link>
+                        </a>
 
                         <div class="dropdown-menu">
-                            <button @click="goToPlofile">プロフィールを表示</button>
+                            <button @click="goToProfile">プロフィールを表示</button>
                             <!-- <hr /> -->
                             <button @click="handleLogout" class="logout-btn">ログアウト</button>
                         </div>
