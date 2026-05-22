@@ -287,7 +287,7 @@ onMounted(async () => {
                         <ul v-if="articles.length > 0" class="article-list">
                             <li v-for="item in articles" :key="item.id" class="article-item">
                                 <span class="article-title">{{ item.title }}</span>
-                                <button class="btn-article-edit">編集</button>
+                                <button v-if="isMyProfile" class="btn-article-edit">編集</button>
                             </li>
                         </ul>
                         <p v-else class="empty-message">投稿した記事はありません。</p>
@@ -297,7 +297,7 @@ onMounted(async () => {
                         <ul v-if="questions.length > 0" class="article-list">
                             <li v-for="item in questions" :key="item.id" class="article-item">
                                 <span class="article-title">{{ item.title }}</span>
-                                <button class="btn-article-edit">編集</button> </li>
+                                <button v-if="isMyProfile" class="btn-article-edit">編集</button> </li>
                             </ul>
                         <p v-else class="empty-message">質問はまだありません。</p>
                     </div>
