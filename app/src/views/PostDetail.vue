@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
 import { fetchArticleById, type Article } from '@/api/articles';
 import { fetchQuestionById } from '@/api/questions';
+import { likeArticle, likeQuestion, unlikeArticle, unlikeQuestion } from '@/api/likes';
 import CommentThread from '@/components/CommentThread.vue';
 import QuestionAnswerThread from '@/components/QuestionAnswerThread.vue';
 
@@ -13,6 +14,32 @@ const article = ref<Article | null>(null);
 const loading = ref(true);
 const contentId = ref('');
 const contentType = ref<'article' | 'question'>('article');
+
+const handleLike = async () => {
+  if (!article.value) return;
+  const isLiked = article.value.is_liked;
+  try {
+    let res;
+    if (isLiked) {
+      if (contentType.value === 'question') {
+        res = await unlikeQuestion(contentId.value);
+      } else {
+        res = await unlikeArticle(contentId.value);
+      }
+    } else {
+      if (contentType.value === 'question') {
+        res = await likeQuestion(contentId.value);
+      } else {
+        res = await likeArticle(contentId.value);
+      }
+    }
+    article.value.likes_count = res.likes_count;
+    article.value.is_liked = !isLiked;
+  } catch (error: any) {
+    const msg = error?.response?.data?.detail || '処理に失敗しました。';
+    alert(msg);
+  }
+};
 
 const getUserIdFromToken =
 (): string => {
@@ -58,6 +85,7 @@ onMounted(async () => {
         author: q.user_name || '',
         category: '質問',
         likes_count: q.likes_count,
+        is_liked: q.is_liked,
         comments: 0,
         created_at: q.created_at,
       };
@@ -148,7 +176,12 @@ const goToUserProfile = (
             </div>
             <div class="category-badge">{{ article.category }}</div>
             <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
-            <div class="article-meta">👍 高評価 {{ article.likes_count }}</div>
+            
+            <div class="article-actions">
+              <button class="like-button" :class="{ 'is-active': article.is_liked }" @click="handleLike">
+                <span class="like-icon">👍</span> いいね <span class="like-count">{{ article.likes_count }}</span>
+              </button>
+            </div>
 
             <div class="body-content">
               {{ article.body }}
@@ -224,6 +257,48 @@ const goToUserProfile = (
   border-radius: 20px;
   font-size: 13px;
   margin: 20px 0 20px 0;
+}
+
+.article-actions {
+  margin: 15px 0;
+}
+
+.like-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.like-button:hover {
+  background-color: #f0f8ff;
+  border-color: #2693B4;
+  color: #2693B4;
+  transform: scale(1.03);
+}
+
+.like-button:active {
+  transform: scale(0.97);
+}
+
+.like-button.is-active {
+  background-color: #e7f3ff;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.like-button.is-active:hover {
+  background-color: #d0e7ff;
+  border-color: #0056b3;
+  color: #0056b3;
 }
 
 .body-content {

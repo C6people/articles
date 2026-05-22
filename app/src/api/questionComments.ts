@@ -7,6 +7,7 @@ export interface QuestionCommentResponse {
   parent_id: string | null;
   body: string;
   likes_count: number;
+  is_liked?: boolean;
   is_answer: boolean;
   is_best: boolean;
   created_at: string;

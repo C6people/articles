@@ -26,7 +26,9 @@
       <div class="answer-body">{{ answer.body }}</div>
 
       <div class="answer-actions">
-        <span class="like-display">👍 {{ answer.likes_count }}</span>
+        <button class="like-btn" :class="{ 'is-active': answer.is_liked }" @click="handleLike(answer.id)">
+          👍 {{ answer.likes_count }}
+        </button>
         <!-- ベストアンサー選択ボタン（質問者のみ） -->
         <button
           v-if="isQuestionOwner && !answer.is_best"
@@ -50,7 +52,9 @@
             <span class="sub-comment-date">{{ formatDate(comment.created_at) }}</span>
           </div>
           <div class="sub-comment-body">{{ comment.body }}</div>
-          <div class="sub-comment-like">👍 {{ comment.likes_count }}</div>
+          <button class="sub-comment-like-btn" :class="{ 'is-active': comment.is_liked }" @click="handleLike(comment.id)">
+            👍 {{ comment.likes_count }}
+          </button>
         </div>
 
         <!-- コメント入力 -->
@@ -80,6 +84,7 @@ import {
   setBestAnswer,
   type QuestionCommentResponse,
 } from '@/api/questionComments';
+import { likeQuestionComment, unlikeQuestionComment } from '@/api/likes';
 
 const props = defineProps<{
   questionId: string;
@@ -90,6 +95,23 @@ const allComments = ref<QuestionCommentResponse[]>([]);
 const newAnswerText = ref('');
 const expandedAnswers = ref(new Set<string>());
 const subCommentTexts = reactive<Record<string, string>>({});
+
+async function handleLike(commentId: string) {
+  const comment = allComments.value.find(c => c.id === commentId);
+  if (!comment) return;
+  const isLiked = comment.is_liked;
+  try {
+    if (isLiked) {
+      await unlikeQuestionComment(commentId);
+    } else {
+      await likeQuestionComment(commentId);
+    }
+    await loadComments();
+  } catch (error: any) {
+    const msg = error?.response?.data?.detail || '処理に失敗しました。';
+    alert(msg);
+  }
+}
 
 // 現在のユーザーID（トークンから取得）
 const currentUserId = computed(() => {
@@ -406,14 +428,62 @@ const formatDate = (dateStr: string) => {
   font-size: 14px;
 }
 
-.like-display {
-  color: #666;
+.like-btn {
   font-size: 13px;
+  color: #666;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.like-btn:hover {
+  background-color: #f0f8ff;
+  border-color: #2693B4;
+  color: #2693B4;
+}
+.like-btn.is-active {
+  background-color: #e7f3ff;
+  border-color: #007bff;
+  color: #007bff;
+}
+.like-btn.is-active:hover {
+  background-color: #d0e7ff;
+  border-color: #0056b3;
+  color: #0056b3;
 }
 
-.sub-comment-like {
+.sub-comment-like-btn {
   font-size: 12px;
   color: #777;
+  background: none;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 2px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   margin-top: 4px;
+  transition: all 0.2s;
+}
+.sub-comment-like-btn:hover {
+  background-color: #f0f8ff;
+  border-color: #2693B4;
+  color: #2693B4;
+}
+.sub-comment-like-btn.is-active {
+  background-color: #e7f3ff;
+  border-color: #007bff;
+  color: #007bff;
+}
+.sub-comment-like-btn.is-active:hover {
+  background-color: #d0e7ff;
+  border-color: #0056b3;
+  color: #0056b3;
 }
 </style>

@@ -16,6 +16,7 @@
         :key="comment.id"
         :comment="comment"
         :level="0"
+        :contentType="contentType"
         @reply="handleReply"
       />
     </div>

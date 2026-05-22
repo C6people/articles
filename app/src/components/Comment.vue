@@ -10,7 +10,9 @@
       </div>
       <div class="comment-body">{{ comment.body }}</div>
       <div class="comment-actions">
-        <span class="like-display">👍 {{ comment.likes_count ?? 0 }}</span>
+        <button class="like-btn" :class="{ 'is-active': comment.is_liked }" @click="handleLike">
+          👍 {{ comment.likes_count ?? 0 }}
+        </button>
         <button class="reply-btn" @click="toggleReply">返信</button>
         <button v-if="comment.replies.length" class="toggle-btn" @click="toggleCollapse">
           {{ collapsed ? '返信を表示' : '返信を隠す' }} ({{ comment.replies.length }})
@@ -29,6 +31,7 @@
           :key="reply.id"
           :comment="reply"
           :level="level + 1"
+          :contentType="contentType"
           @reply="(parentId: string, text: string) => $emit('reply', parentId, text)"
         />
       </div>
@@ -39,6 +42,8 @@
 <script setup lang="ts">
 
 import { ref, computed, onMounted, nextTick } from 'vue';
+import { likeArticleComment, likeQuestionComment, unlikeArticleComment, unlikeQuestionComment } from '@/api/likes';
+
 // 日時フォーマット関数
 function toJSTandFormat(dateStr: string): string {
   if (!dateStr) return '';
@@ -77,6 +82,7 @@ export interface CommentType {
   created_at: string;
   user_name?: string | null;
   likes_count?: number;
+  is_liked?: boolean;
   replies: CommentType[];
 }
 
@@ -85,9 +91,39 @@ export interface CommentType {
 const props = withDefaults(defineProps<{
   comment: CommentType;
   level?: number;
+  contentType?: 'article' | 'question';
 }>(), {
-  level: 0  // もし指定がなければ 0 を代入する
+  level: 0,  // もし指定がなければ 0 を代入する
+  contentType: 'article'
 });
+
+const handleLike = async () => {
+  if (!props.comment) return;
+  const isLiked = props.comment.is_liked;
+  try {
+    let res;
+    if (isLiked) {
+      if (props.contentType === 'question') {
+        res = await unlikeQuestionComment(props.comment.id);
+      } else {
+        res = await unlikeArticleComment(props.comment.id);
+      }
+    } else {
+      if (props.contentType === 'question') {
+        res = await likeQuestionComment(props.comment.id);
+      } else {
+        res = await likeArticleComment(props.comment.id);
+      }
+    }
+    // eslint-disable-next-line vue/no-mutating-props
+    props.comment.likes_count = res.likes_count;
+    // eslint-disable-next-line vue/no-mutating-props
+    props.comment.is_liked = !isLiked;
+  } catch (error: any) {
+    const msg = error?.response?.data?.detail || '処理に失敗しました。';
+    alert(msg);
+  }
+};
 
 const emit = defineEmits(['reply']);
 const showReplyBox = ref(false);
@@ -254,8 +290,32 @@ function toggleCollapse() {
   opacity: 0;
 }
 
-.like-display {
+.like-btn {
   font-size: 13px;
   color: #666;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.like-btn:hover {
+  background-color: #f0f8ff;
+  border-color: #2693B4;
+  color: #2693B4;
+}
+.like-btn.is-active {
+  background-color: #e7f3ff;
+  border-color: #007bff;
+  color: #007bff;
+}
+.like-btn.is-active:hover {
+  background-color: #d0e7ff;
+  border-color: #0056b3;
+  color: #0056b3;
 }
 </style>
