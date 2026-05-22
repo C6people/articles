@@ -1,8 +1,9 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from uuid import UUID
 from typing import Optional
+from src.models.user import User  # 必要に応じて修正
 
 # Bearer token を受け取る設定
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -86,3 +87,10 @@ async def get_current_user_id_optional(
     except Exception:
         # 期限切れトークンや不正トークンの場合も認証情報無しとして扱う
         return None
+async def get_current_user(request: Request) -> User:
+    # 実際の実装に合わせて修正してください
+    # ここではユーザー情報をrequest.state.userから取得する例
+    user = getattr(request.state, 'user', None)
+    if user is None:
+        raise HTTPException(status_code=401, detail="認証情報がありません")
+    return user

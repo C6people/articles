@@ -1,17 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
-
 from src.database import get_db
 from src.core.deps import get_current_user_id
-
+from src.models.user import User
 import src.schemas.user as user_schema
 import src.cruds.user as user_crud
-
 import src.schemas.article as article_schema
 import src.cruds.article as article_crud
 import src.schemas.question as question_schema
 import src.cruds.question as question_crud
+
 
 router = APIRouter()
 
@@ -117,3 +117,21 @@ async def get_user_questions(
     )
 
     return questions
+
+
+# user_idからユーザー情報取得
+async def get_user_by_id(
+
+    db: AsyncSession,
+
+    user_id: UUID
+
+):
+
+    result = await db.execute(  # ユーザー情報を取得
+        select(User).where(
+            User.id == user_id
+        )
+    )
+
+    return result.scalar_one_or_none()  # user_idに該当するユーザーがいない場合はNoneを返す
