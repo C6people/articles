@@ -3,6 +3,8 @@ from sqlalchemy import update
 from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from src.models.like import Like
 from src.models.article import Article, ArticleComment
@@ -56,3 +58,59 @@ async def create_like(db: AsyncSession, target_type: str, target_id: UUID, user_
         await db.rollback()
         # UniqueConstraint違反(すでにいいね済み)など
         raise HTTPException(status_code=400, detail="すでにいいねしています")
+
+
+async def get_liked_articles(
+    db: AsyncSession,
+    user_id: UUID
+):
+    # ユーザーがいいねした article のID取得
+    result = await db.execute(
+        select(Like.target_id)
+        .where(
+            Like.user_id == user_id,
+            Like.target_type == "article"
+        )
+    )
+
+    article_ids = result.scalars().all()
+
+    if not article_ids:
+        return []
+
+    # 記事取得（既存構成に寄せる）
+    result = await db.execute(
+        select(Article)
+        .options(selectinload(Article.user))
+        .where(Article.id.in_(article_ids))
+        .order_by(Article.created_at.desc())
+    )
+
+    return result.scalars().all()
+
+
+async def get_liked_questions(
+    db: AsyncSession,
+    user_id: UUID
+):
+    result = await db.execute(
+        select(Like.target_id)
+        .where(
+            Like.user_id == user_id,
+            Like.target_type == "question"
+        )
+    )
+
+    question_ids = result.scalars().all()
+
+    if not question_ids:
+        return []
+
+    result = await db.execute(
+        select(Question)
+        .options(selectinload(Question.user))
+        .where(Question.id.in_(question_ids))
+        .order_by(Question.created_at.desc())
+    )
+
+    return result.scalars().all()

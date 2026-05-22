@@ -5,7 +5,7 @@ from uuid import UUID
 from src.database import get_db
 from src.core.deps import get_current_user_id
 import src.cruds.like as like_crud
-from src.schemas.like import LikeResponse
+from src.schemas.like import LikeResponse, LikedContentsResponse
 
 router = APIRouter()
 
@@ -47,3 +47,26 @@ async def like_question_comment(
 ):
     likes_count = await like_crud.create_like(db, "question_comment", comment_id, user_id)
     return LikeResponse(message="質問のコメントにいいねしました", likes_count=likes_count)
+
+@router.get(
+    "/users/{user_id}/likes",
+    response_model=LikedContentsResponse
+)
+async def get_user_likes(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    articles = await like_crud.get_liked_articles(
+        db,
+        user_id
+    )
+
+    questions = await like_crud.get_liked_questions(
+        db,
+        user_id
+    )
+
+    return {
+        "articles": articles,
+        "questions": questions
+    }
