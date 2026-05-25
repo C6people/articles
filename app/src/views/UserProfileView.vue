@@ -319,25 +319,25 @@ onMounted(async () => {
 					</button>
 				</nav>
 
-				<div class="tab-content">
-					<div v-if="currentTab === '記事'">
-						<ul v-if="articles.length > 0" class="article-list">
-							<li v-for="item in articles" :key="item.id" class="article-item">
-								<span class="article-title">{{ item.title }}</span>
-								<button class="btn-article-edit">編集</button>
-							</li>
-						</ul>
-						<p v-else class="empty-message">投稿した記事はありません。</p>
-					</div>
+                <div class="tab-content">
+                    <div v-if="currentTab === '記事'">
+                        <ul v-if="articles.length > 0" class="article-list">
+                            <li v-for="item in articles" :key="item.id" class="article-item">
+                                <span class="article-title">{{ item.title }}</span>
+                                <button v-if="isMyProfile" class="btn-article-edit">編集</button>
+                            </li>
+                        </ul>
+                        <p v-else class="empty-message">投稿した記事はありません。</p>
+                    </div>
 
-					<div v-else-if="currentTab === '質問'">
-						<ul v-if="questions.length > 0" class="article-list">
-							<li v-for="item in questions" :key="item.id" class="article-item">
-								<span class="article-title">{{ item.title }}</span>
-								<button class="btn-article-edit">編集</button> </li>
-							</ul>
-						<p v-else class="empty-message">質問はまだありません。</p>
-					</div>
+                    <div v-else-if="currentTab === '質問'">
+                        <ul v-if="questions.length > 0" class="article-list">
+                            <li v-for="item in questions" :key="item.id" class="article-item">
+                                <span class="article-title">{{ item.title }}</span>
+                                <button v-if="isMyProfile" class="btn-article-edit">編集</button> </li>
+                            </ul>
+                        <p v-else class="empty-message">質問はまだありません。</p>
+                    </div>
 
 					<div v-else-if="currentTab === 'いいね'">
 						<ul v-if="likes.length > 0" class="article-list">
