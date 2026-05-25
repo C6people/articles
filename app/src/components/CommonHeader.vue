@@ -15,9 +15,13 @@ const searchQuery = ref('');
 // 検索実行ロジック
 const executeSearch = () => {
     const keyword = searchQuery.value.trim();
-    if (!keyword) return;
+    if (!keyword) {
+        // 空欄で検索した場合はクエリをクリアしてHomeへ遷移（全記事表示）
+        router.push({ name: 'Home' });
+        return;
+    }
     // URLを /?q=キーワード に書き換えて移動する
-    router.push({ path: '/', query: { q: keyword } });
+    router.push({ name: 'Home', query: { q: keyword } });
 };
 // -------------------------------------------------------
 
