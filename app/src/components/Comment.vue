@@ -10,8 +10,8 @@
       </div>
       <div class="comment-body">{{ comment.body }}</div>
       <div class="comment-actions">
-        <button class="like-btn" :class="{ 'is-active': comment.is_liked }" @click="handleLike">
-          👍 {{ comment.likes_count ?? 0 }}
+        <button class="like-btn" :class="{ 'is-active': localIsLiked }" @click="handleLike">
+          👍 {{ localLikesCount }}
         </button>
         <button class="reply-btn" @click="toggleReply">返信</button>
         <button v-if="comment.replies.length" class="toggle-btn" @click="toggleCollapse">
@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import { likeArticleComment, likeQuestionComment, unlikeArticleComment, unlikeQuestionComment } from '@/api/likes';
 
 // 日時フォーマット関数
@@ -97,9 +97,19 @@ const props = withDefaults(defineProps<{
   contentType: 'article'
 });
 
+const localLikesCount = ref(props.comment.likes_count ?? 0);
+const localIsLiked = ref(props.comment.is_liked ?? false);
+
+watch(() => props.comment.likes_count, (newVal) => {
+  localLikesCount.value = newVal ?? 0;
+});
+watch(() => props.comment.is_liked, (newVal) => {
+  localIsLiked.value = newVal ?? false;
+});
+
 const handleLike = async () => {
   if (!props.comment) return;
-  const isLiked = props.comment.is_liked;
+  const isLiked = localIsLiked.value;
   try {
     let res;
     if (isLiked) {
@@ -115,10 +125,8 @@ const handleLike = async () => {
         res = await likeArticleComment(props.comment.id);
       }
     }
-    // eslint-disable-next-line vue/no-mutating-props
-    props.comment.likes_count = res.likes_count;
-    // eslint-disable-next-line vue/no-mutating-props
-    props.comment.is_liked = !isLiked;
+    localLikesCount.value = res.likes_count;
+    localIsLiked.value = !isLiked;
   } catch (error: any) {
     const msg = error?.response?.data?.detail || '処理に失敗しました。';
     alert(msg);

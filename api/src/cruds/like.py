@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update
+from sqlalchemy import update, case
 from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
@@ -140,7 +140,7 @@ async def delete_like(db: AsyncSession, target_type: str, target_id: UUID, user_
     stmt_update = (
         update(model)
         .where(model.id == target_id)
-        .values(likes_count=model.likes_count - 1)
+        .values(likes_count=case((model.likes_count > 0, model.likes_count - 1), else_=0))
         .returning(model.likes_count)
     )
     update_result = await db.execute(stmt_update)
