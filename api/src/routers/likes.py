@@ -70,3 +70,43 @@ async def get_user_likes(
         "articles": articles,
         "questions": questions
     }
+
+
+@router.delete("/articles/{article_id}/likes", response_model=LikeResponse)
+async def unlike_article(
+    article_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: UUID = Depends(get_current_user_id)
+):
+    likes_count = await like_crud.delete_like(db, "article", article_id, user_id)
+    return LikeResponse(message="記事のいいねを解除しました", likes_count=likes_count)
+
+
+@router.delete("/questions/{question_id}/likes", response_model=LikeResponse)
+async def unlike_question(
+    question_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: UUID = Depends(get_current_user_id)
+):
+    likes_count = await like_crud.delete_like(db, "question", question_id, user_id)
+    return LikeResponse(message="質問のいいねを解除しました", likes_count=likes_count)
+
+
+@router.delete("/article-comments/{comment_id}/likes", response_model=LikeResponse)
+async def unlike_article_comment(
+    comment_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: UUID = Depends(get_current_user_id)
+):
+    likes_count = await like_crud.delete_like(db, "article_comment", comment_id, user_id)
+    return LikeResponse(message="記事のコメントのいいねを解除しました", likes_count=likes_count)
+
+
+@router.delete("/question-comments/{comment_id}/likes", response_model=LikeResponse)
+async def unlike_question_comment(
+    comment_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user_id: UUID = Depends(get_current_user_id)
+):
+    likes_count = await like_crud.delete_like(db, "question_comment", comment_id, user_id)
+    return LikeResponse(message="質問のコメントのいいねを解除しました", likes_count=likes_count)

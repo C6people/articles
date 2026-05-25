@@ -11,6 +11,7 @@ export type Article = {
   author: string;
   category: string;
   likes_count: number;
+  is_liked?: boolean;
   comments: number;
   created_at: string;
 };

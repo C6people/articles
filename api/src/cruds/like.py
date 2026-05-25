@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update
+from sqlalchemy import update, case
 from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
@@ -114,3 +114,66 @@ async def get_liked_questions(
     )
 
     return result.scalars().all()
+
+
+async def delete_like(db: AsyncSession, target_type: str, target_id: UUID, user_id: UUID) -> int:
+    """指定した対象へのいいねを削除し、対象のlikes_countをデクリメントする"""
+    
+    # 対象のモデルを取得
+    model = TARGET_MODELS.get(target_type)
+    if not model:
+        raise HTTPException(status_code=400, detail="不正なtarget_typeです")
+        
+    # 1. いいねレコードの存在確認
+    stmt_select = select(Like).where(
+        Like.user_id == user_id,
+        Like.target_type == target_type,
+        Like.target_id == target_id
+    )
+    result = await db.execute(stmt_select)
+    like_record = result.scalar_one_or_none()
+    
+    if not like_record:
+        raise HTTPException(status_code=400, detail="いいねしていません")
+        
+    # 2. 対象のlikes_countを-1（0未満にはならないよう制御）
+    stmt_update = (
+        update(model)
+        .where(model.id == target_id)
+        .values(likes_count=case((model.likes_count > 0, model.likes_count - 1), else_=0))
+        .returning(model.likes_count)
+    )
+    update_result = await db.execute(stmt_update)
+    updated_likes_count = update_result.scalar()
+    
+    if updated_likes_count is None:
+        raise HTTPException(status_code=404, detail="対象が見つかりません")
+        
+    # 3. いいねレコードを削除
+    await db.delete(like_record)
+    await db.commit()
+    return updated_likes_count
+
+
+async def check_is_liked(db: AsyncSession, user_id: UUID, target_type: str, target_id: UUID) -> bool:
+    """ユーザーが対象をいいねしているか判定する"""
+    stmt = select(Like).where(
+        Like.user_id == user_id,
+        Like.target_type == target_type,
+        Like.target_id == target_id
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() is not None
+
+
+async def get_user_liked_ids(db: AsyncSession, user_id: UUID, target_type: str, target_ids: list[UUID]) -> set[UUID]:
+    """対象のIDリストのうち、ユーザーがいいねしているIDの集合を返す"""
+    if not target_ids:
+        return set()
+    stmt = select(Like.target_id).where(
+        Like.user_id == user_id,
+        Like.target_type == target_type,
+        Like.target_id.in_(target_ids)
+    )
+    result = await db.execute(stmt)
+    return set(result.scalars().all())

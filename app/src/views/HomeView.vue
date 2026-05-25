@@ -30,6 +30,7 @@ onMounted(async () => {
       author: q.user_name || '',
       category: '質問',    // 質問は固定カテゴリー
       likes_count: q.likes_count,
+      is_liked: q.is_liked,
       comments: 0,
       created_at: q.created_at,
     }));

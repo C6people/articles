@@ -15,6 +15,7 @@ class ArticleResponse(BaseModel):
     category: str
     body: str
     likes_count: int = 0
+    is_liked: bool = False
     created_at: datetime
 
     class Config:

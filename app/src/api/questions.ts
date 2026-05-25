@@ -7,6 +7,7 @@ export type Question = {
   title: string;
   body: string;
   likes_count: number;
+  is_liked?: boolean;
   created_at: string;
 };
 

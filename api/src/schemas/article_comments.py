@@ -15,6 +15,7 @@ class ArticleCommentResponse(BaseModel):
     parent_id: UUID | None = None  # 親コメントのID
     body: str             # コメントの内容
     likes_count: int = 0  # いいね数
+    is_liked: bool = False # いいね済みフラグ
     created_at: datetime  # 作成日時
     user_name: str | None = None  # ユーザー名
 
