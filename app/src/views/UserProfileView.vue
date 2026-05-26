@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useRouter, useRoute } from 'vue-router';
 import CommonHeader from '@/components/CommonHeader.vue';
@@ -30,6 +30,73 @@ const user = ref({
 	// bio: ''
 });
 
+// ========== アクティビティ関連 ==========
+// 使用技術タグ（ダミーデータ）
+const skills = ref([
+	'Vue.js',
+	'TypeScript',
+	'Python',
+	'FastAPI',
+	'Docker',
+	'AWS',
+	'PostgreSQL',
+	'Git'
+]);
+
+// 全利用可能な技術一覧（a～z順）
+const allAvailableSkills = ref([
+	'AWS',
+	'Azure',
+	'Bootstrap',
+	'C++',
+	'C#',
+	'CSS',
+	'Docker',
+	'Electron',
+	'Express',
+	'FastAPI',
+	'Firebase',
+	'Flutter',
+	'Git',
+	'GitHub',
+	'GitLab',
+	'Go',
+	'GraphQL',
+	'HTML',
+	'Java',
+	'JavaScript',
+	'Jest',
+	'Kubernetes',
+	'Laravel',
+	'Linux',
+	'MongoDB',
+	'MySQL',
+	'Next.js',
+	'Node.js',
+	'PostgreSQL',
+	'Python',
+	'React',
+	'Redis',
+	'REST API',
+	'Ruby',
+	'Rust',
+	'Sass',
+	'Spring Boot',
+	'SQL',
+	'SQLite',
+	'Tailwind CSS',
+	'TypeScript',
+	'Vue.js',
+	'Webpack',
+	'Windows',
+	'Xcode'
+]);
+
+// スキル選択モーダル関連
+const isEditingSkills = ref(false);
+const selectedSkillsForEdit = ref<string[]>([]);
+
+// ========== 既存のデータ ==========
 const isMyProfile = ref(true); 
 const userNotFound = ref(false);
 
@@ -271,6 +338,72 @@ onMounted(async () => {
 	await fetchUserLikes();
 });
 
+// スキル編集開始
+const startEditingSkills = () => {
+	selectedSkillsForEdit.value = [...skills.value]; // 現在の選択をコピー
+	isEditingSkills.value = true;
+};
+
+// スキルトグル（選択/非選択）
+const toggleSkill = (skill: string) => {
+	const index = selectedSkillsForEdit.value.indexOf(skill);
+	if (index > -1) {
+		// 既に選択されている場合は削除
+		selectedSkillsForEdit.value.splice(index, 1);
+	} else {
+		// 選択されていない場合は追加（ただし10個まで）
+		if (selectedSkillsForEdit.value.length < 10) {
+			selectedSkillsForEdit.value.push(skill);
+		}
+	}
+};
+
+// スキル選択を確認
+const saveSkills = async () => {
+	try {
+		const token = localStorage.getItem('token');
+
+		// API呼び出し準備（将来実装用）
+		// await axios.put(
+		// 	`${API_URL}/users/me`,
+		// 	{ skills: selectedSkillsForEdit.value },
+		// 	{ headers: { Authorization: `Bearer ${token}` } }
+		// );
+
+		// 一旦ローカル更新
+		skills.value = [...selectedSkillsForEdit.value];
+		isEditingSkills.value = false;
+
+		console.log('スキル保存成功', selectedSkillsForEdit.value);
+	} catch (error) {
+		console.error('スキル保存失敗', error);
+		alert('スキルの保存に失敗しました');
+	}
+};
+
+// スキル選択キャンセル
+const cancelEditingSkills = () => {
+	isEditingSkills.value = false;
+	selectedSkillsForEdit.value = [];
+};
+
+// スキル一括選択解除
+const clearAllSkills = () => {
+	selectedSkillsForEdit.value = [];
+};
+
+// 記事編集
+const editArticle = (articleId: string) => {
+	console.log('記事編集クリック:', articleId);
+	router.push(`/detail/${articleId}`);
+};
+
+// 質問編集
+const editQuestion = (questionId: string) => {
+	console.log('質問編集クリック:', questionId);
+	router.push(`/detail/${questionId}`);
+};
+
 </script>
 
 <template>
@@ -324,7 +457,6 @@ onMounted(async () => {
                         <ul v-if="articles.length > 0" class="article-list">
                             <li v-for="item in articles" :key="item.id" class="article-item">
                                 <span class="article-title">{{ item.title }}</span>
-                                <button v-if="isMyProfile" class="btn-article-edit">編集</button>
                             </li>
                         </ul>
                         <p v-else class="empty-message">投稿した記事はありません。</p>
@@ -334,8 +466,8 @@ onMounted(async () => {
                         <ul v-if="questions.length > 0" class="article-list">
                             <li v-for="item in questions" :key="item.id" class="article-item">
                                 <span class="article-title">{{ item.title }}</span>
-                                <button v-if="isMyProfile" class="btn-article-edit">編集</button> </li>
-                            </ul>
+                            </li>
+                        </ul>
                         <p v-else class="empty-message">質問はまだありません。</p>
                     </div>
 
@@ -356,52 +488,64 @@ onMounted(async () => {
 			</div>
 		</div>
 	</div>
-        
-			<!-- サイドバーPW変更等 -->
-			<aside v-if="isMyProfile" class="sidebar">
-				<div class="sticky-container">
-				<div class="card action-card">
-					<span>パスワード変更</span>
-					<button @click="goToPasswordChange" class="btn-action-red">変更</button>
+
+	<!-- サイドバー -->
+	<aside class="sidebar">
+		<div class="sticky-container">
+			<!-- 使用技術タグ -->
+			<div class="card skills-card">
+				<div class="skills-header">
+					<h3 class="card-title">🛠️ 使用技術</h3>
+					<button v-if="isMyProfile" class="btn-change-skills" @click="startEditingSkills">
+						変更
+					</button>
 				</div>
-
-				<div class="card action-card">
-					<span>ログアウトする</span>
-					<button @click="handleLogout" class="btn-action-red">ログアウト</button>
+				<div class="skills-container">
+					<span v-for="skill in skills" :key="skill" class="skill-tag">
+						{{ skill }}
+					</span>
 				</div>
-				</div>
-			</aside>
+			</div>
 
-		</main>
-		<div
-		v-else
-		class="not-found-container"
-		>
-			<h1>
-				ユーザーが見つかりません
-			</h1>
-
-			<p>
-				指定されたユーザーは
-				存在しないか、
-				削除された可能性があります。
-			</p>
-
-			<button
-				class="back-button"
-				@click="router.push('/')"   
-				>
-				ホームへ戻る
-			</button>
+			<!-- セキュリティ（自分のプロフィールの場合のみ表示） -->
+			<div v-if="isMyProfile" class="card action-card">
+				<span>アカウントセキュリティ</span>
+				<p class="action-description">パスワードを変更して、アカウントをより安全に保ちましょう。</p>
+				<button @click="goToPasswordChange" class="btn-action-red">パスワードを変更</button>
+			</div>
 		</div>
+	</aside>
+        
+	</main>
+	<div
+	v-else
+	class="not-found-container"
+	>
+		<h1>
+			ユーザーが見つかりません
+		</h1>
 
-		<!-- 編集モーダル -->
-		<!-- isEditingがtrueの時に表示なのでmodal-container以外（背景半透明）に触れると閉じるようになっています -->
-		<div v-if="isMyProfile && isEditing" class="modal-mask" @click.self="isEditing = false">
-			<div class="modal-container">
-				<h3>自己紹介を編集</h3>
-				<textarea 
-					v-model="tempBio" 
+		<p>
+			指定されたユーザーは
+			存在しないか、
+			削除された可能性があります。
+		</p>
+
+		<button
+			class="back-button"
+			@click="router.push('/')"   
+			>
+			ホームへ戻る
+		</button>
+	</div>
+
+	<!-- 編集モーダル -->
+	<!-- isEditingがtrueの時に表示なのでmodal-container以外（背景半透明）に触れると閉じるようになっています -->
+	<div v-if="isMyProfile && isEditing" class="modal-mask" @click.self="isEditing = false">
+		<div class="modal-container">
+			<h3>自己紹介を編集</h3>
+			<textarea 
+				v-model="tempBio" 
 					class="edit-bio-area" 
 					placeholder="自己紹介を入力してください"
 				></textarea>
@@ -412,6 +556,41 @@ onMounted(async () => {
 			</div>
 		</div>
 		<!-- ------------------------ -->
+
+	<!-- スキル選択モーダル -->
+	<div v-if="isEditingSkills" class="modal-mask" @click.self="cancelEditingSkills">
+		<div class="modal-container skills-modal-container">
+			<div class="skills-modal-header">
+				<div class="skills-modal-title-row">
+					<h3>使用技術を選択</h3>
+					<button v-if="selectedSkillsForEdit.length > 0" class="btn-clear-all" @click="clearAllSkills">
+						クリア
+					</button>
+				</div>
+				<p class="skills-modal-subtitle">最大10個まで選択できます（選択中: {{ selectedSkillsForEdit.length }} / 10）</p>
+			</div>
+
+			<div class="skills-selection-grid">
+				<label v-for="skill in allAvailableSkills" :key="skill" class="skill-checkbox-label">
+					<input
+						type="checkbox"
+						:value="skill"
+						:checked="selectedSkillsForEdit.includes(skill)"
+						:disabled="!selectedSkillsForEdit.includes(skill) && selectedSkillsForEdit.length >= 10"
+						@change="toggleSkill(skill)"
+						class="skill-checkbox"
+					/>
+					<span class="skill-checkbox-text">{{ skill }}</span>
+				</label>
+			</div>
+
+			<div class="modal-buttons">
+				<button class="btn-save" @click="saveSkills">保存</button>
+				<button class="btn-cancel" @click="cancelEditingSkills">キャンセル</button>
+			</div>
+		</div>
+	</div>
+	<!-- ======================== -->
 	</div>
 </template>
 
@@ -453,20 +632,21 @@ onMounted(async () => {
 
 /* ---  メインレイアウト --- */
 .profile-container {
-	display: flex;
-	justify-content: center;
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	justify-items: start;
+	align-items: start;
 	max-width: 1200px;
 	margin: 0 auto;
-	padding: 40px 100px;
-	gap: 100px; /* メイン（記事）とサイド（パスワード）の間のスペース */
-	align-items: flex-start;
+	padding: 30px 50px;
+	gap: 40px;
 }
 
 .main-content {
-	min-width: 0; /* Flexの子要素がはみ出さないようにするための魔法の1行 */
-	flex: 1;
+	min-width: 0;
+	width: 100%;
 	display: flex;
-	flex-direction: column; 
+	flex-direction: column;
 }
 
 /* --- ヘッダー --- */
@@ -610,34 +790,128 @@ onMounted(async () => {
 /* 右のサイドバー */
 .sidebar {
 	width: 320px;
-	margin-top: 195px; /* 微調整の集大成 さわるな */
+	margin-top: 0;
 }
-/* パスワード変更・退会 */
+
+/* スティッキーコンテナ */
 .sticky-container {
-	top: 200px; 
+	position: sticky;
+	top: 100px;
 	display: flex;
 	flex-direction: column;
-	gap: 20px; /* カード同士の隙間 */
+	gap: 20px;
+}
+
+/* ========== カード共通スタイル拡張 ========== */
+.card-title {
+	font-size: 16px;
+	font-weight: bold;
+	color: #333;
+	margin: 0 0 16px 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* ========== 使用技術タグ ========== */
+.skills-card {
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+	padding: 20px;
+}
+
+.skills-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.skills-header .card-title {
+	margin: 0;
+}
+
+.btn-change-skills {
+	background: none;
+	border: 1px solid #2693B4;
+	color: #2693B4;
+	padding: 4px 12px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.btn-change-skills:hover {
+	background-color: #2693B4;
+	color: #fff;
+}
+
+.skills-container {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.skill-tag {
+	display: inline-block;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: #fff;
+	padding: 6px 12px;
+	border-radius: 20px;
+	font-size: 12px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	cursor: default;
+	white-space: nowrap;
+}
+
+.skill-tag:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .action-card {
 	display: flex;
-	justify-content: space-between;
+	flex-direction: column;
+	justify-content: center;
 	align-items: center;
+	gap: 10px;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+	padding: 20px;
+}
+.action-card span {
+	font-size: 16px;
+	font-weight: bold;
+	color: #333;
+}
+.action-description {
+	font-size: 13px;
+	color: #666;
+	text-align: center;
+	margin: 0;
+	line-height: 1.4;
 }
 .btn-action-red {
-	border: 3px solid #b42626;
-	background: #fff;
-	color: #b42626;
-	border-radius: 20px;
-	padding: 6px 30px;
-	cursor: pointer;
-	font-weight: bold;
-	transition: ease-out 0.3s;
-}
-.btn-action-red:hover {
+	width: 100%;
+	border: none;
 	background-color: #b42626;
 	color: #fff;
+	border-radius: 8px;
+	padding: 12px 24px;
+	cursor: pointer;
+	font-weight: bold;
+	font-size: 15px;
+	transition: all 0.3s ease;
+}
+.btn-action-red:hover {
+	background-color: #8b1d1d;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(180, 38, 38, 0.3);
 }
 
 /* --- モーダル関連 --- */
@@ -728,28 +1002,155 @@ onMounted(async () => {
 }
 /* --- ↑モーダル --- */
 
+/* ========== スキル選択モーダル ========== */
+.skills-modal-container {
+	width: 90%;
+	max-width: 600px;
+	max-height: 80vh;
+	overflow-y: auto;
+}
+
+.skills-modal-header {
+	margin-bottom: 24px;
+}
+
+.skills-modal-title-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+}
+
+.skills-modal-header h3 {
+	margin: 0;
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.btn-clear-all {
+	background: none;
+	border: 1px solid #ff6b6b;
+	color: #ff6b6b;
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	white-space: nowrap;
+}
+
+.btn-clear-all:hover {
+	background-color: #ff6b6b;
+	color: #fff;
+}
+
+.skills-modal-subtitle {
+	margin: 0;
+	font-size: 13px;
+	color: #666;
+}
+
+.skills-selection-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	gap: 12px;
+	margin-bottom: 24px;
+	padding: 16px;
+	background: #f8f9fa;
+	border-radius: 8px;
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+.skill-checkbox-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	cursor: pointer;
+	border-radius: 6px;
+	transition: all 0.2s ease;
+	user-select: none;
+}
+
+.skill-checkbox-label:hover {
+	background: #e8eef7;
+}
+
+.skill-checkbox {
+	cursor: pointer;
+	width: 18px;
+	height: 18px;
+	accent-color: #2693B4;
+}
+
+.skill-checkbox:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+
+.skill-checkbox-text {
+	font-size: 13px;
+	color: #333;
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.skill-checkbox-label:has(.skill-checkbox:checked) {
+	background: #d4e8f0;
+	font-weight: 500;
+}
+/* ======================== */
+
 /* 画面幅が 768px 以下（タブレットやスマホ）になったら適用 */
 @media (max-width: 768px) {
 	.profile-wrapper {
-	padding-top: 20px;  /* リンクの分だけ上に隙間を作る */
+	padding-top: 20px;
 	}
+	
 	.profile-container {
-		flex-direction: column; /* 「左と右」を「上と下」に並び替える */
-		align-items: stretch;   /* 横幅いっぱいまで広げる */
-		padding: 20px 50px; 
+		grid-template-columns: 1fr;
+		padding: 20px 20px;
+		gap: 20px;
 	}
 
 	.main-content {
-		width: 100%; /* メインエリアを全幅にする */
+		width: 100%;
 	}
 
-	/* パスワード変更などのサイドバーも全幅にして下に並べる */
+	/* サイドバーも全幅 */
 	.sidebar {
 		width: 100%;
-		display: flex;
+	}
+
+	.sticky-container {
+		position: static;
 		flex-direction: column;
 		gap: 20px;
-		margin: 0; /* 上のマージンは消す */
+	}
+
+	/* スマホではタグを2行に */
+	.skills-container {
+		justify-content: space-between;
+	}
+
+	.skill-tag {
+		flex: 0 0 calc(50% - 4px);
+		text-align: center;
+	}
+
+	/* スマホのモーダルサイズ調整 */
+	.skills-modal-container {
+		width: 95%;
+		max-height: 90vh;
+	}
+
+	.skills-selection-grid {
+		grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+		max-height: 300px;
 	}
 }
 

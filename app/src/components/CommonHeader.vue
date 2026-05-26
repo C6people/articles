@@ -71,23 +71,17 @@ const handleLogout = () => {
                     </div>
                     <button class="post-button" @click="handlePostClick">+ 投稿する</button>
 
-                    <!-- ログアウトボタン0508暫定的---------------- -->
-                    <div class="user-menu-container">
-                        <!-- a hrefに変更0522 -->
-                        <!-- 強制的にリロードをかけて自分のプロフ情報を取得します -->
-                        <a href="/profile" class="profile-icon">
-                            <div class="color-avatar">
-                                <span>U</span> 
-                            </div>
-                        </a>
-
-                        <div class="dropdown-menu">
-                            <button @click="goToProfile">プロフィールを表示</button>
-                            <!-- <hr /> -->
-                            <button @click="handleLogout" class="logout-btn">ログアウト</button>
+                    <!-- プロフィール表示ボタン -->
+                    <button class="profile-button" @click="goToProfile">
+                        <div class="color-avatar">
+                            <span>👤</span>
                         </div>
-                    </div>
-                    <!-- ↑0508プロフィール用---------------------------- -->
+                        <span class="button-text">プロフィール</span>
+                    </button>
+                    <!-- ログアウトボタン -->
+                    <button class="logout-button" @click="handleLogout">
+                        ログアウト
+                    </button>
                 </div>
 
             </div>
@@ -244,48 +238,58 @@ const handleLogout = () => {
     user-select: none; /* 文字を選択不可にする */
 }
 
-/* メニューの初期状態：隠しておく */
-.dropdown-menu {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    min-width: 160px;
-    z-index: 100;
-    /* アニメーション系 */
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-}
-
-/* ホバーした時の状態 */
-.user-menu-container:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.dropdown-menu button {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    text-align: left;
+/* プロフィール表示ボタン */
+.profile-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #2693B4;
+    color: white;
     border: none;
-    background: none;
+    padding: 8px 12px;
+    border-radius: 20px;
     cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
     transition: all 0.3s ease;
 }
 
-.dropdown-menu button:hover {
-    background-color: #f5f5f5;
+.profile-button:hover {
+    background-color: #1b6a8c;
+    transform: translateY(-2px);
 }
 
-.logout-btn {
-    color: red;
+.profile-button .color-avatar {
+    width: 28px;
+    height: 28px;
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.profile-button .button-text {
+    font-size: 14px;
+}
+
+/* ログアウトボタン */
+.logout-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
     font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #da190b;
+    transform: translateY(-2px);
 }
 /* -------------------------------------------------------- */
 /* レスポンシブ緊急（すべてimportantついてます） */
@@ -361,11 +365,20 @@ const handleLogout = () => {
         padding: 8px !important;
     }
 
-    /* プロフィールアイコン：少しだけ小さく */
-    .profile-icon {
-        width: 30px !important;
-        height: 30px !important;
-        flex-shrink: 0 !important;
+    /* プロフィールボタン：レスポンシブ対応 */
+    .profile-button {
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+        gap: 4px !important;
+    }
+
+    .profile-button .button-text {
+        display: none !important;
+    }
+
+    .logout-button {
+        padding: 6px 10px !important;
+        font-size: 12px !important;
     }
 
 }
