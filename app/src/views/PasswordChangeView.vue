@@ -56,9 +56,6 @@ const handleSubmit = async () => {
     return;
   }
 
-  // 成功時
-  alert("更新しました。再ログインしてください");
-
   // ログアウト処理（トークン削除）
   localStorage.removeItem("token");
   alert("更新しました。再ログインしてください");
