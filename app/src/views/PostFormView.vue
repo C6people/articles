@@ -165,7 +165,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="form-group">
+      <!-- ミスりそうなので残しておきます（緊急） -->
+      <!-- <div class="form-group">
         <label for="tags">タグ</label>
         <div class="field">
           <input
@@ -176,7 +177,7 @@ onMounted(() => {
           />
           <div class="error-msg"></div>
         </div>
-      </div>
+      </div> -->
 
       <div class="button-container">
         <button type="button" class="cancel-btn" @click="handleCancel">キャンセル</button>
@@ -189,7 +190,7 @@ onMounted(() => {
 <style scoped>
 /* 基本設定 */
 .post-container {
-  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  font-family: sans-serif;
   background-color: #fff;
   color: #333;
   line-height: 1.6;
@@ -210,6 +211,7 @@ h1 {
   border-bottom: 1px solid #eee;
   padding-bottom: 20px;
   margin-bottom: 30px;
+  font-weight: bold;
 }
 
 /* 入力行のレイアウト */
@@ -268,7 +270,7 @@ input[type="text"]:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #0084d1;
+  border-color: #2693B4;
   background-color: #fff;
 }
 
@@ -306,13 +308,15 @@ input[type="submit"] {
 }
 
 input[type="submit"] {
-  background-color: #0084d1;
+  background-color: #2693B4;
   border: none;
   color: white;
+  font-weight: bold;
+  transition: background-color 0.3s;
 }
 
 input[type="submit"]:hover {
-  background-color: #0066a3;
+  background-color: #1b6a8c;
 }
 
 /* エラースタイル */

@@ -323,8 +323,13 @@ onMounted(async () => {
                     <div v-if="currentTab === '記事'">
                         <ul v-if="articles.length > 0" class="article-list">
                             <li v-for="item in articles" :key="item.id" class="article-item">
-                                <span class="article-title">{{ item.title }}</span>
-                                <button v-if="isMyProfile" class="btn-article-edit">編集</button>
+								<!-- ↓type: item.typeでも見れるけどquestionが指定なので合わせます -->
+								<router-link :to="{ path: `/post/${item.id}`, query: { type: 'article' } }" class="article-title">
+									{{ item.title }}
+								</router-link>
+								<!-- ミスりそうなので残しておきます -->
+                                <!-- <span class="article-title">{{ item.title }}</span> -->
+                                <!-- <button v-if="isMyProfile" class="btn-article-edit">編集</button> -->
                             </li>
                         </ul>
                         <p v-else class="empty-message">投稿した記事はありません。</p>
@@ -333,20 +338,32 @@ onMounted(async () => {
                     <div v-else-if="currentTab === '質問'">
                         <ul v-if="questions.length > 0" class="article-list">
                             <li v-for="item in questions" :key="item.id" class="article-item">
-                                <span class="article-title">{{ item.title }}</span>
-                                <button v-if="isMyProfile" class="btn-article-edit">編集</button> </li>
-                            </ul>
+								<!-- ↓type: item.typeだと見れないのでquestion直接指定 -->
+								<router-link :to="{ path: `/post/${item.id}`, query: { type: 'question' } }" class="article-title">
+									{{ item.title }}
+								</router-link>
+								<!-- ミスりそうなので残しておきます -->
+                                <!-- <span class="article-title">{{ item.title }}</span> -->
+                                <!-- <button v-if="isMyProfile" class="btn-article-edit">編集</button> -->
+                            </li>
+                        </ul>
                         <p v-else class="empty-message">質問はまだありません。</p>
                     </div>
 
 					<div v-else-if="currentTab === 'いいね'">
 						<ul v-if="likes.length > 0" class="article-list">
 						<li v-for="item in likes" :key="item.id" class="article-item">
-						<span class="article-title">
+						<router-link :to="{ path: `/post/${item.id}`, query: { type: item.type } }" class="article-title">
 							<span v-if="item.type === 'article'">📝 記事：</span>
 							<span v-else>❓ 質問：</span>
 							{{ item.title }}
-						</span>
+						</router-link>
+							<!-- ミスりそうなので残しておきます -->
+							<!-- <span class="article-title">
+								<span v-if="item.type === 'article'">📝 記事：</span>
+								<span v-else>❓ 質問：</span>
+								{{ item.title }}
+							</span> -->
 					</li>
 				</ul>
 
@@ -568,9 +585,9 @@ onMounted(async () => {
 	gap: 15px; /* タイトルと編集ボタンの間のスペース */
 }
 .article-title {
-  /* 固定（70%）ではなく、最大（70%）にする */
+  /* 固定（90%）ではなく、最大（90%）にする */
 	flex: 1; /* 余っているスペースを埋める */
-	max-width: 70%; 
+	max-width: 90%; 
     
 	/* 三点リーダー設定はそのまま */
 	white-space: nowrap;
@@ -579,7 +596,19 @@ onMounted(async () => {
     
 	/* 左揃えを確実にする */
 	text-align: left;
+	
+	/* カラー */
+	text-decoration: none;
+    color: #333;
+    transition: color 0.2s ease;
+    display: inline-block;
+
 }
+.article-title:hover {
+    color: #2693B4;
+    /* text-decoration: underline; */
+}
+
 /* 記事編集ボタン */
 .btn-article-edit {
 	/* ボタンが潰れないように、幅を固定 */
