@@ -77,7 +77,10 @@ const handleLogout = () => {
                         <!-- 強制的にリロードをかけて自分のプロフ情報を取得します -->
                         <a href="/profile" class="profile-icon">
                             <div class="color-avatar">
-                                <span>U</span> 
+                                <span class="material-symbols-outlined">
+                                account_circle   <!--- アイコン描画 -->
+                                  
+                                </span>
                             </div>
                         </a>
 
@@ -100,6 +103,11 @@ const handleLogout = () => {
 </script>
 
 <style scoped>
+
+.material-symbols-outlined {
+    font-size: 40px;
+}
+
 .article-header-wrapper {
     width: 100%;
     position: sticky;
