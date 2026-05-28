@@ -1,13 +1,19 @@
 <script setup lang="ts">
+import { ref, computed, onMounted, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import CommonHeader from "@/components/CommonHeader.vue";
+import { fetchArticles } from "@/api/articles";
+import type { Article } from "@/api/articles";
+import { fetchQuestions } from "@/api/questions";
 
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import CommonHeader from '@/components/CommonHeader.vue';
-import { fetchArticles } from '@/api/articles';
-import type { Article } from '@/api/articles';
-import { fetchQuestions } from '@/api/questions';
-
-const categories = ["すべて", "プログラミング", "質問", "コラム", "制作物", "その他"];
+const categories = [
+  "すべて",
+  "プログラミング",
+  "質問",
+  "コラム",
+  "制作物",
+  "その他",
+];
 // --- 1. データ管理（API接続） ---
 const posts = ref<Article[]>([]);
 
@@ -26,9 +32,9 @@ onMounted(async () => {
       user_name: q.user_name,
       title: q.title,
       body: q.body,
-      content: '',         // Homeではタイトルのみ表示
-      author: q.user_name || '',
-      category: '質問',    // 質問は固定カテゴリー
+      content: "", // Homeではタイトルのみ表示
+      author: q.user_name || "",
+      category: "質問", // 質問は固定カテゴリー
       likes_count: q.likes_count,
       is_liked: q.is_liked,
       comments: 0,
@@ -60,7 +66,7 @@ watch(
     const q = Array.isArray(newVal) ? newVal[0] : newVal;
     searchQuery.value = (q as string) || "";
   },
-  { immediate: true } // 画面が開いた瞬間も実行する
+  { immediate: true }, // 画面が開いた瞬間も実行する
 );
 // ----------------------------------------------------
 
@@ -74,7 +80,9 @@ const filteredAndSortedPosts = computed(() => {
     // 検索語や記事のフィールドが undefined でも安全に扱えるようにする
     const q = (searchQuery.value || "").toString().toLowerCase();
     const title = (post.title || "").toString().toLowerCase();
-    const bodyOrContent = (post.content ?? post.body ?? "").toString().toLowerCase();
+    const bodyOrContent = (post.content ?? post.body ?? "")
+      .toString()
+      .toLowerCase();
     const isSearchMatch = title.includes(q) || bodyOrContent.includes(q);
     return isCategoryMatch && isSearchMatch;
   });
@@ -84,36 +92,27 @@ const filteredAndSortedPosts = computed(() => {
     // created_atが不正な場合は0とみなす
     const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
     const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-    return sortOrder.value === 'desc' 
-      ? dateB - dateA  // 新着順（大きい順）
+    return sortOrder.value === "desc"
+      ? dateB - dateA // 新着順（大きい順）
       : dateA - dateB; // 古い順（小さい順）
   });
 });
 
 // JWTからログイン中ユーザーID取得
-const getUserIdFromToken =
-(): string => {
+const getUserIdFromToken = (): string => {
+  const token = localStorage.getItem("token");
 
-    const token =
-        localStorage.getItem('token');
+  if (!token) return "";
 
-    if (!token) return '';
+  const tokenParts = token.split(".");
 
-    const tokenParts =
-        token.split('.');
+  if (tokenParts.length < 2) {
+    return "";
+  }
 
-    if (tokenParts.length < 2) {
-        return '';
-    }
+  const payload = JSON.parse(atob(tokenParts[1] ?? ""));
 
-    const payload =
-        JSON.parse(
-            atob(tokenParts[1] ?? '')
-        );
-
-    return String(
-        payload.user_id ?? ''
-    );
+  return String(payload.user_id ?? "");
 };
 
 // 記事詳細画面へ遷移
@@ -121,46 +120,31 @@ const goToPost = () => {
   router.push("/post");
 };
 const goToDetail = (post: Article) => {
-  const type = post.category === '質問' ? 'question' : 'article';
+  const type = post.category === "質問" ? "question" : "article";
   router.push({ name: "PostDetail", params: { id: post.id }, query: { type } });
 };
-const goToUserProfile = (
-    userId?: string | number
-) => {
+const goToUserProfile = (userId?: string | number) => {
+  if (!userId) return;
 
-    if (!userId) return;
+  const myUserId = getUserIdFromToken();
 
-    const myUserId =
-        getUserIdFromToken();
+  const clickedUserId = String(userId);
 
-    const clickedUserId =
-        String(userId);
+  console.log("clicked:", clickedUserId);
 
-    console.log(
-        'clicked:',
-        clickedUserId
-    );
+  console.log("me:", myUserId);
 
-    console.log(
-        'me:',
-        myUserId
-    );
-
-    if (
-        clickedUserId ===
-        String(myUserId)
-    ) {
-        router.push('/profile');
-    } else {
-        router.push(
-            `/users/${clickedUserId}`
-        );
-    }
+  if (clickedUserId === String(myUserId)) {
+    router.push("/profile");
+  } else {
+    router.push(`/users/${clickedUserId}`);
+  }
 };
 const formatDate = (dateStr: string | undefined) => {
-  if (!dateStr) return '';
+  if (!dateStr) return "";
   // UTCとして解釈させるため、タイムゾーン表記がない場合は 'Z' を補完する
-  const safeDateStr = dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+  const safeDateStr =
+    dateStr.endsWith("Z") || dateStr.includes("+") ? dateStr : dateStr + "Z";
   const date = new Date(safeDateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -171,7 +155,7 @@ const formatDate = (dateStr: string | undefined) => {
 
   if (diffSec < 60) {
     // 0秒未満（未来）のズレがあった場合は数秒前とする
-    return diffSec <= 0 ? '数秒前' : `${diffSec}秒前`;
+    return diffSec <= 0 ? "数秒前" : `${diffSec}秒前`;
   } else if (diffMin < 60) {
     return `${diffMin}分前`;
   } else if (diffHour < 24) {
@@ -180,7 +164,7 @@ const formatDate = (dateStr: string | undefined) => {
     return `${diffDay}日前`;
   } else {
     // 1週間以上前なら日付のみ
-    return date.toLocaleDateString('ja-JP'); 
+    return date.toLocaleDateString("ja-JP");
   }
 };
 </script>
@@ -213,8 +197,20 @@ const formatDate = (dateStr: string | undefined) => {
           </h2>
 
           <div class="sort-tabs">
-            <button class="tab" :class="{ active: sortOrder === 'desc' }" @click="sortOrder = 'desc'">新着順</button>
-            <button class="tab" :class="{ active: sortOrder === 'asc' }" @click="sortOrder = 'asc'">古い順</button>
+            <button
+              class="tab"
+              :class="{ active: sortOrder === 'desc' }"
+              @click="sortOrder = 'desc'"
+            >
+              新着順
+            </button>
+            <button
+              class="tab"
+              :class="{ active: sortOrder === 'asc' }"
+              @click="sortOrder = 'asc'"
+            >
+              古い順
+            </button>
           </div>
         </div>
 
@@ -232,11 +228,13 @@ const formatDate = (dateStr: string | undefined) => {
             <h3 class="post-title">{{ post.title }}</h3>
             <p class="post-summary">{{ post.content }}</p>
             <div class="post-footer">
-              <span class="author-name clickable-user" @click.stop="goToUserProfile(post.user_id)">
-                👤 {{ post.user_name || '不明' }}
+              <span
+                class="author-name clickable-user"
+                @click.stop="goToUserProfile(post.user_id)"
+              >
+                👤 {{ post.user_name || "不明" }}
               </span>
               <div class="post-stats">
-                <span class="stat">💬 コメント {{ post.comments }}</span>
                 <span class="stat">👍 高評価 {{ post.likes_count }}</span>
               </div>
             </div>
@@ -261,7 +259,6 @@ const formatDate = (dateStr: string | undefined) => {
   margin: 0;
   padding: 0;
 }
-
 
 /* 2カラムレイアウト設定 */
 .content-wrapper {
@@ -418,7 +415,7 @@ const formatDate = (dateStr: string | undefined) => {
 }
 
 .clickable-user:hover {
-  color: #2693B4;
+  color: #2693b4;
   text-decoration: underline;
 }
 </style>
