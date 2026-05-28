@@ -335,9 +335,9 @@ const formatDate = (dateStr: string | undefined) => {
 }
 
 .tab.active {
-  background-color: #007bff;
+  background-color: #2693b4;
   color: white;
-  border-color: #007bff;
+  border-color: #2693b4;
   font-weight: bold;
 }
 
