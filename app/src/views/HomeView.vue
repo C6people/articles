@@ -185,7 +185,6 @@ const formatDate = (dateStr: string | undefined) => {
             @click="selectedCategory = cat"
           >
             {{ cat }}
-            <span class="arrow">▶</span>
           </li>
         </ul>
       </aside>
