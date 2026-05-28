@@ -153,14 +153,6 @@ const goToUserProfile = (
     <CommonHeader />
 
     <div class="content-wrapper">
-      <aside class="sidebar">
-        <h2 class="sidebar-title">おすすめ記事一覧</h2>
-        <ul class="recommended-list">
-          <li>FastAPIでのDB接続エラー解決策</li>
-          <li>ポートフォリオのデザイン案</li>
-        </ul>
-      </aside>
-
       <main class="main-content">
         <div v-if="loading" class="loading-text">読み込み中...</div>
 
@@ -226,10 +218,10 @@ const goToUserProfile = (
 
 .content-wrapper {
   display: grid;
-  grid-template-columns: 250px 1fr;
+  grid-template-columns: 1fr;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 30px 20px;
+  padding: 30px 90px;
   gap: 30px;
 }
 
@@ -376,25 +368,6 @@ const goToUserProfile = (
 .back-button:hover {
   background: #2693B4;
   color: white;
-}
-
-.sidebar-title {
-  margin-top: 70px;
-  font-size: 16px;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
-}
-
-.recommended-list {
-  list-style: none;
-  padding: 0;
-}
-
-.recommended-list li {
-  padding: 15px 0;
-  border-bottom: 1px solid #eee;
-  font-size: 14px;
-  cursor: pointer;
 }
 
 .clickable-user {
