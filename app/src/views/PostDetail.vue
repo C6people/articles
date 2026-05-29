@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import CommonHeader from '@/components/CommonHeader.vue';
-import { fetchArticleById, type Article } from '@/api/articles';
-import { fetchQuestionById } from '@/api/questions';
-import { likeArticle, likeQuestion, unlikeArticle, unlikeQuestion } from '@/api/likes';
-import CommentThread from '@/components/CommentThread.vue';
-import QuestionAnswerThread from '@/components/QuestionAnswerThread.vue';
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import CommonHeader from "@/components/CommonHeader.vue";
+import { fetchArticleById, type Article } from "@/api/articles";
+import { fetchQuestionById } from "@/api/questions";
+import {
+  likeArticle,
+  likeQuestion,
+  unlikeArticle,
+  unlikeQuestion,
+} from "@/api/likes";
+import CommentThread from "@/components/CommentThread.vue";
+import QuestionAnswerThread from "@/components/QuestionAnswerThread.vue";
 
 const route = useRoute();
 const router = useRouter();
 const article = ref<Article | null>(null);
 const loading = ref(true);
-const contentId = ref('');
-const contentType = ref<'article' | 'question'>('article');
+const contentId = ref("");
+const contentType = ref<"article" | "question">("article");
 
 const handleLike = async () => {
   if (!article.value) return;
@@ -21,13 +26,13 @@ const handleLike = async () => {
   try {
     let res;
     if (isLiked) {
-      if (contentType.value === 'question') {
+      if (contentType.value === "question") {
         res = await unlikeQuestion(contentId.value);
       } else {
         res = await unlikeArticle(contentId.value);
       }
     } else {
-      if (contentType.value === 'question') {
+      if (contentType.value === "question") {
         res = await likeQuestion(contentId.value);
       } else {
         res = await likeArticle(contentId.value);
@@ -36,44 +41,35 @@ const handleLike = async () => {
     article.value.likes_count = res.likes_count;
     article.value.is_liked = !isLiked;
   } catch (error: any) {
-    const msg = error?.response?.data?.detail || '処理に失敗しました。';
+    const msg = error?.response?.data?.detail || "処理に失敗しました。";
     alert(msg);
   }
 };
 
-const getUserIdFromToken =
-(): string => {
+const getUserIdFromToken = (): string => {
+  const token = localStorage.getItem("token");
 
-    const token =
-        localStorage.getItem('token');
+  if (!token) return "";
 
-    if (!token) return '';
+  const tokenParts = token.split(".");
 
-    const tokenParts =
-        token.split('.');
+  if (tokenParts.length < 2) {
+    return "";
+  }
 
-    if (tokenParts.length < 2) {
-        return '';
-    }
+  const payload = JSON.parse(atob(tokenParts[1] ?? ""));
 
-    const payload =
-        JSON.parse(
-            atob(tokenParts[1] ?? '')
-        );
-
-    return String(
-        payload.user_id ?? ''
-    );
+  return String(payload.user_id ?? "");
 };
 
 onMounted(async () => {
   const id = route.params.id as string;
   const type = route.query.type as string; // 'question' or 'article'
   contentId.value = id;
-  contentType.value = type === 'question' ? 'question' : 'article';
+  contentType.value = type === "question" ? "question" : "article";
 
   try {
-    if (type === 'question') {
+    if (type === "question") {
       const q = await fetchQuestionById(id);
       article.value = {
         id: q.id,
@@ -82,8 +78,8 @@ onMounted(async () => {
         title: q.title,
         body: q.body,
         content: q.body,
-        author: q.user_name || '',
-        category: '質問',
+        author: q.user_name || "",
+        category: "質問",
         likes_count: q.likes_count,
         is_liked: q.is_liked,
         comments: 0,
@@ -101,50 +97,39 @@ onMounted(async () => {
 
 const formatDate = (dateStr: string | Date | undefined) => {
   if (!dateStr) return "";
-  const safeDateStr = typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+') ? dateStr + 'Z' : dateStr;
+  const safeDateStr =
+    typeof dateStr === "string" &&
+    !dateStr.endsWith("Z") &&
+    !dateStr.includes("+")
+      ? dateStr + "Z"
+      : dateStr;
   const d = new Date(safeDateStr);
   const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
 };
 
 const backToHome = () => router.push("/");
 const goToPost = () => router.push("/post");
-const goToUserProfile = (
-    userId?: string | number
-) => {
+const goToUserProfile = (userId?: string | number) => {
+  if (!userId) return;
 
-    if (!userId) return;
+  const myUserId = getUserIdFromToken();
 
-    const myUserId =
-        getUserIdFromToken();
+  const clickedUserId = String(userId);
 
-    const clickedUserId =
-        String(userId);
+  console.log("clicked:", clickedUserId);
 
-    console.log(
-        'clicked:',
-        clickedUserId
-    );
+  console.log("me:", myUserId);
 
-    console.log(
-        'me:',
-        myUserId
-    );
-
-    if (
-        clickedUserId ===
-        String(myUserId)
-    ) {
-        router.push('/profile');
-    } else {
-        router.push(
-            `/users/${clickedUserId}`
-        );
-    }
+  if (clickedUserId === String(myUserId)) {
+    router.push("/profile");
+  } else {
+    router.push(`/users/${clickedUserId}`);
+  }
 };
 </script>
 
@@ -163,15 +148,25 @@ const goToUserProfile = (
 
           <section class="main-card article-section">
             <h1 class="title">{{ article.title }}</h1>
-            <div class="author-name clickable-user" @click.stop="goToUserProfile(article.user_id)">
-              👤 {{ article.user_name || '不明' }}
+            <div
+              class="author-name clickable-user"
+              @click.stop="goToUserProfile(article.user_id)"
+            >
+              👤 {{ article.user_name || "不明" }}
             </div>
             <div class="category-badge">{{ article.category }}</div>
-            <div class="post-date">投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}</div>
-            
+            <div class="post-date">
+              投稿日時 &nbsp;&nbsp;{{ formatDate(article.created_at) }}
+            </div>
+
             <div class="article-actions">
-              <button class="like-button" :class="{ 'is-active': article.is_liked }" @click="handleLike">
-                <span class="like-icon">👍</span> いいね <span class="like-count">{{ article.likes_count }}</span>
+              <button
+                class="like-button"
+                :class="{ 'is-active': article.is_liked }"
+                @click="handleLike"
+              >
+                <span class="like-icon">👍</span> いいね
+                <span class="like-count">{{ article.likes_count }}</span>
               </button>
             </div>
 
@@ -181,8 +176,10 @@ const goToUserProfile = (
           </section>
 
           <!-- 質問の場合：Q&A特化UI -->
-          <section v-if="contentType === 'question'" class="main-card comment-section">
-            <h2 class="comment-count">回答</h2>
+          <section
+            v-if="contentType === 'question'"
+            class="main-card comment-section"
+          >
             <QuestionAnswerThread
               :questionId="contentId"
               :questionUserId="article.user_id"
@@ -197,7 +194,9 @@ const goToUserProfile = (
         </template>
 
         <template v-else>
-          <button class="back-button" @click="backToHome">← 記事一覧へ戻る</button>
+          <button class="back-button" @click="backToHome">
+            ← 記事一覧へ戻る
+          </button>
           <div class="main-card">
             <p>記事が見つかりませんでした。</p>
           </div>
@@ -243,7 +242,7 @@ const goToUserProfile = (
 
 .category-badge {
   display: inline-block;
-  background-color: #2693B4;
+  background-color: #2693b4;
   color: white;
   padding: 4px 14px;
   border-radius: 20px;
@@ -272,8 +271,8 @@ const goToUserProfile = (
 
 .like-button:hover {
   background-color: #f0f8ff;
-  border-color: #2693B4;
-  color: #2693B4;
+  border-color: #2693b4;
+  color: #2693b4;
   transform: scale(1.03);
 }
 
@@ -333,7 +332,7 @@ const goToUserProfile = (
 }
 
 .input-container input:focus {
-  border-bottom: 2px solid #2693B4;
+  border-bottom: 2px solid #2693b4;
 }
 
 .input-buttons {
@@ -344,7 +343,7 @@ const goToUserProfile = (
 }
 
 .submit-btn {
-  background: #2693B4;
+  background: #2693b4;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -355,8 +354,8 @@ const goToUserProfile = (
 /* その他パーツ */
 .back-button {
   background: none;
-  border: 3px solid #2693B4;
-  color: #2693B4;
+  border: 3px solid #2693b4;
+  color: #2693b4;
   padding: 8px 20px;
   border-radius: 20px;
   cursor: pointer;
@@ -366,7 +365,7 @@ const goToUserProfile = (
 }
 
 .back-button:hover {
-  background: #2693B4;
+  background: #2693b4;
   color: white;
 }
 
@@ -376,7 +375,7 @@ const goToUserProfile = (
 }
 
 .clickable-user:hover {
-  color: #2693B4;
+  color: #2693b4;
   text-decoration: underline;
 }
 </style>
