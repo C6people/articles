@@ -82,7 +82,7 @@ const togglePasswordVisibility = () => {
                     v-model="userid" 
                     :class="{ 'input-error': isError }"
                     required 
-                    placeholder="7桁学籍番号（半角）"
+                    placeholder="ユーザーID"
                 >
                 <div class="error-message">{{ errorMessage }}</div>
             </div>

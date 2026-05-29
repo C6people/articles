@@ -76,7 +76,7 @@ const toggleConfirmPasswordVisibility = () => {
             v-model="userId"
             :class="{ 'input-error': isError }"
             required
-            placeholder="7桁学籍番号"
+            placeholder="ユーザーID"
           >
           <div class="error-message">{{ errorMessage }}</div>
         </div>
