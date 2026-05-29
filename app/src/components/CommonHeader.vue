@@ -77,7 +77,10 @@ const handleLogout = () => {
                         <!-- 強制的にリロードをかけて自分のプロフ情報を取得します -->
                         <a href="/profile" class="profile-icon">
                             <div class="color-avatar">
-                                <span>U</span> 
+                                <span class="material-symbols-outlined">
+                                account_circle   <!--- アイコン描画 -->
+                                  
+                                </span>
                             </div>
                         </a>
 
@@ -100,6 +103,11 @@ const handleLogout = () => {
 </script>
 
 <style scoped>
+
+.material-symbols-outlined {
+    font-size: 40px;
+}
+
 .article-header-wrapper {
     width: 100%;
     position: sticky;
@@ -215,12 +223,19 @@ const handleLogout = () => {
 .profile-icon {
     width: 40px;
     height: 40px;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
-    overflow: hidden; /* はみ出た部分を隠す（正円） */
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* border: 2px solid #fff; */
+    flex-shrink: 0;
+    contain: layout paint size;
+    background-color: #2693B4;
+
+    /* 👇これだけ追加 */
+    min-width: 40px;
+    min-height: 40px;
 }
 
 /* 画像が有効になった時の設定 */
@@ -234,14 +249,16 @@ const handleLogout = () => {
 .color-avatar {
     width: 100%;
     height: 100%;
-    background-color: #2693B4; /* 色付きアイコン */
+    min-width: 100%;
+    min-height: 100%;
+    background-color: #2693B4;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
     font-size: 18px;
-    user-select: none; /* 文字を選択不可にする */
+    user-select: none;
 }
 
 /* メニューの初期状態：隠しておく */
